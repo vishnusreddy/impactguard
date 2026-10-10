@@ -1,5 +1,6 @@
 """Deterministic business detection over persisted synthetic customer events."""
 
+from messages import format_finding
 import json, math, os, random, sqlite3, threading, uuid
 from datetime import datetime, timedelta, timezone
 
@@ -450,14 +451,14 @@ class Engine:
                 "detail": "Evidence correlated and dollar exposure calculated",
             },
         ]
-        return base
+        return format_finding(base)
 
     def finding(self, finding_id=None):
         row = self.db.execute(
             "SELECT payload FROM findings WHERE id=?",
             (finding_id or self.get("current"),),
         ).fetchone()
-        return json.loads(row[0]) if row else None
+        return format_finding(json.loads(row[0])) if row else None
 
     def action(self, action, finding_id=None):
         with LOCK:
@@ -595,7 +596,7 @@ class Engine:
                     }
                 )
             history = [
-                json.loads(r[0])
+                format_finding(json.loads(r[0]))
                 for r in self.db.execute(
                     "SELECT payload FROM findings ORDER BY rowid DESC"
                 )

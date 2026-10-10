@@ -29,7 +29,6 @@ import {
   Clock,
   SlidersHorizontal,
   Workflow,
-  Zap,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -40,7 +39,6 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ReferenceLine,
 } from "recharts";
 import "./style.css";
 const money = (n, decimals = 0) =>
@@ -56,25 +54,28 @@ const scenarios = [
     id: "banking",
     name: "Unbacked bank credits",
     description:
-      "Failed transfers are marked successful and credited without settlement.",
+      "Simulate a status mapping error that credits failed and pending transfers.",
     icon: Layers,
   },
   {
     id: "checkout",
     name: "Checkout regression",
-    description: "A payment redirect release breaks Safari + PayPal.",
+    description:
+      "Simulate failed checkout attempts in Safari sessions that use PayPal.",
     icon: GitBranch,
   },
   {
     id: "promotion",
     name: "Promotion stacking",
-    description: "Two discounts combine and erase contribution margin.",
+    description:
+      "Simulate combined discounts that produce negative contribution margin.",
     icon: Layers,
   },
   {
     id: "delivery",
     name: "Delivery delays",
-    description: "Late deliveries correlate with fewer repeat purchases.",
+    description:
+      "Compare repeat purchase rates for on-time and delayed deliveries.",
     icon: Workflow,
   },
 ];
@@ -153,7 +154,7 @@ function App() {
     const d = await mutate(
       "scenarios",
       { scenario: id },
-      "Scenario launched. Evidence is ready.",
+      "Scenario completed. The incident is available.",
     );
     if (d) {
       setDemo(false);
@@ -183,7 +184,7 @@ function App() {
       a.download = "impactguard-incident-report.json";
       a.click();
       URL.revokeObjectURL(url);
-      setToast("Incident report exported");
+      setToast("Incident report downloaded.");
     } catch (e) {
       setError(e.message);
     }
@@ -194,14 +195,14 @@ function App() {
         : null) || data?.finding,
     active = data?.status === "active";
   const nav = [
-    ["overview", LayoutDashboard, "Business issues"],
+    ["overview", LayoutDashboard, "Regressions"],
     ["incidents", Activity, "Incidents"],
     ["changes", GitBranch, "Releases"],
-    ["commits", Command, "Commit intelligence"],
+    ["commits", Command, "Commit analysis"],
     ["banking", Layers, "Reconciliation"],
-    ["graph", Workflow, "Impact graph"],
+    ["graph", Workflow, "Metric dependencies"],
     ["sources", Link2, "Data sources"],
-    ["audit", Clock, "Activity log"],
+    ["audit", Clock, "Audit log"],
   ];
   return (
     <div className="app">
@@ -226,12 +227,14 @@ function App() {
           </span>
           <ChevronDown size={14} />
         </button>
-        <div className="nav-label">PROJECT</div>
+        <div className="nav-label">Project</div>
         <nav>
           {nav.map(([id, Icon, label]) => (
             <button
               key={id}
               className={view === id ? "selected" : ""}
+              aria-label={label}
+              title={label}
               onClick={() => setView(id)}
             >
               <Icon size={18} />
@@ -245,7 +248,7 @@ function App() {
         <div className="sidebar-bottom">
           <div className="monitor">
             <span className={active ? "status-dot red-dot" : "status-dot"} />
-            Demo telemetry ready
+            Event data available
             <small>
               {data?.event_count?.toLocaleString() || "…"} synthetic events
               processed
@@ -253,7 +256,7 @@ function App() {
           </div>
           <button className="help-link" onClick={() => setView("sources")}>
             <Terminal size={16} />
-            Developer quickstart
+            Ingestion API
             <ArrowUpRight size={15} />
           </button>
           <div className="user">
@@ -276,7 +279,7 @@ function App() {
             </strong>
           </div>
           <div className="top-actions">
-            <span className="demo-label">LOCAL DEMO</span>
+            <span className="demo-label">Local demo</span>
             <button
               className="icon-button"
               aria-label="Open demo controls"
@@ -299,7 +302,7 @@ function App() {
           {!data ? (
             <div className="loading">
               <Loader2 className="spin" />
-              Preparing business telemetry…
+              Loading event data…
             </div>
           ) : (
             <>
@@ -308,15 +311,15 @@ function App() {
                   <div className="issue-head">
                     <div>
                       <div className="data-tags">
-                        <span>SHOPIFY SELLER DEMO</span>
+                        <span>Shopify demo</span>
                         <span className="dark-tag">
-                          {data.event_count.toLocaleString()} EVENTS
+                          {data.event_count.toLocaleString()} events
                         </span>
                       </div>
-                      <h1>Business issues</h1>
+                      <h1>Business regressions</h1>
                       <p>
-                        Regressions linked to releases, customer segments, and
-                        financial exposure.
+                        Review metric regressions, affected segments, and
+                        related code changes.
                       </p>
                     </div>
                     <div className="issue-filters">
@@ -342,7 +345,7 @@ function App() {
                         <div className="filter-search">
                           <Search size={14} />
                           <input
-                            aria-label="Search business issues"
+                            aria-label="Search regressions"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder="e.g. checkout, coupon"
@@ -358,49 +361,68 @@ function App() {
                     }
                   >
                     <div>
-                      <small>Open issues</small>
+                      <small>Open incidents</small>
                       <strong>
                         {active ? 1 : 0}
-                        <em> / 4 monitored journeys</em>
+                        <em> / 4 monitored metrics</em>
                       </strong>
                     </div>
                     <div>
-                      <small>Demo cohort revenue</small>
-                      <strong>{money(data.metrics.revenue)}</strong>
+                      <small>
+                        {f?.scenario === "banking"
+                          ? "Transactions evaluated"
+                          : "Sample revenue"}
+                      </small>
+                      <strong>
+                        {f?.scenario === "banking"
+                          ? data.banking.total.toLocaleString()
+                          : money(data.metrics.revenue)}
+                      </strong>
                     </div>
                     <div>
-                      <small>Projected exposure</small>
+                      <small>
+                        {f?.scenario === "banking"
+                          ? "Unbacked credits"
+                          : "Estimated exposure"}
+                      </small>
                       <strong className={active ? "risk-text" : ""}>
-                        {active
-                          ? money(f.exposure, f.scenario === "banking" ? 2 : 0)
-                          : "$0"}
-                        <em>{active ? " / " + f.unit : " active"}</em>
+                        {f?.scenario === "banking"
+                          ? money(data.banking.exposure, 2)
+                          : active
+                            ? money(f.exposure)
+                            : "$0"}
+                        <em>
+                          {active && f.unit !== "unbacked"
+                            ? " / " + f.unit
+                            : null}
+                        </em>
                       </strong>
                     </div>
                     <div className="summary-health">
-                      <small>Current environment status</small>
+                      <small>Incident status</small>
                       <div>
                         <span
                           className={"status-dot " + (active ? "red-dot" : "")}
                         />
                         {active
-                          ? "Business regression detected"
+                          ? "Active incident"
                           : data.status === "recovered"
                             ? "Recovery verified"
-                            : "No active regressions"}
+                            : "No active incidents"}
                       </div>
                       <span>
-                        Synthetic telemetry. No production systems connected.
+                        Synthetic data. No production integrations are
+                        connected.
                       </span>
                     </div>
                   </section>
                   <div className="issue-toolbar">
                     <div className="issue-tabs">
                       <button className="active">
-                        All journeys <span>3</span>
+                        Metrics <span>3</span>
                       </button>
                       <button onClick={() => setView("incidents")}>
-                        Investigations <span>{data.history.length}</span>
+                        Incidents <span>{data.history.length}</span>
                       </button>
                     </div>
                     <button
@@ -413,9 +435,9 @@ function App() {
                   </div>
                   <div className="seller-context">
                     <strong>Luma Goods</strong>
-                    <span>Independent Shopify seller</span>
+                    <span>Shopify seller example</span>
                     <span>
-                      Impact projections: 120 checkout starts/day × $82 order
+                      Estimate assumptions: 120 checkout starts/day × $82 order
                       value
                     </span>
                   </div>
@@ -475,39 +497,41 @@ function App() {
                         return (
                           <section className="issue-evidence-card" key={s.id}>
                             <div className="issue-card-header">
-                              <span className="issue-rank">{i + 1}</span>
-                              <div>
-                                <div className="category-line">
-                                  <span className="category-label">
-                                    {s.id === "checkout"
-                                      ? "PAYMENTS"
-                                      : s.id === "promotion"
-                                        ? "PROMOTIONS"
-                                        : "CUSTOMER RETENTION"}
-                                  </span>
-                                  <span
-                                    className={
-                                      "issue-state " +
-                                      (running
-                                        ? "issue-open"
-                                        : finding
-                                          ? "issue-resolved"
-                                          : "")
-                                    }
-                                  >
-                                    {finding
-                                      ? finding.status === "active"
-                                        ? "OPEN"
-                                        : "RESOLVED"
-                                      : "READY"}
-                                  </span>
-                                </div>
-                                <h2>{finding?.title || s.name}</h2>
+                              <div className="category-line">
+                                <span className="category-label">
+                                  {s.id === "checkout"
+                                    ? "Payments"
+                                    : s.id === "promotion"
+                                      ? "Promotions"
+                                      : "Retention"}
+                                </span>
+                                <span
+                                  className={
+                                    "issue-state " +
+                                    (running
+                                      ? "issue-open"
+                                      : finding
+                                        ? "issue-resolved"
+                                        : "")
+                                  }
+                                >
+                                  {finding
+                                    ? finding.status === "active"
+                                      ? "Open"
+                                      : "Resolved"
+                                    : "Not evaluated"}
+                                </span>
                               </div>
+                              <span className="issue-rank">{i + 1}</span>
+                              <h2>{finding?.title || s.name}</h2>
                             </div>
                             <p className="issue-card-description">
                               {finding
-                                ? finding.summary.split(". ")[0] + "."
+                                ? s.id === "checkout"
+                                  ? "Checkout completion fell for Safari customers paying with PayPal."
+                                  : s.id === "promotion"
+                                    ? `${finding.evidence[0].value} have negative contribution margin after coupon stacking.`
+                                    : "Late deliveries correlate with lower 30-day repeat purchase rates."
                                 : s.description}
                             </p>
                             <div className="impact-number">
@@ -522,28 +546,28 @@ function App() {
                               {s.id === "promotion"
                                 ? "Negative contribution margin"
                                 : s.id === "delivery"
-                                  ? "Annual retention scenario"
-                                  : "Projected revenue exposure"}
+                                  ? "Annual retention estimate"
+                                  : "Estimated revenue exposure"}
                             </div>
                             <div className="sample-meta">
                               <span>
                                 {finding
                                   ? finding.sample_size.toLocaleString() +
                                     " sessions"
-                                  : "No incident evaluated"}
+                                  : "No incident recorded"}
                               </span>
                               <span>
                                 {finding
                                   ? Math.round(finding.score * 100) +
-                                    "/100 correlation"
-                                  : "Synthetic demo"}
+                                    "/100 candidate score"
+                                  : "Synthetic data"}
                               </span>
                             </div>
                             <div className="card-evidence">
                               <div className="evidence-heading">
                                 {finding
-                                  ? "OBSERVED SIGNALS"
-                                  : "DETECTION TARGETS"}
+                                  ? "Observed results"
+                                  : "Monitored metrics"}
                               </div>
                               {(finding
                                 ? finding.evidence
@@ -552,7 +576,7 @@ function App() {
                                       label: "Metric",
                                       value:
                                         s.id === "checkout"
-                                          ? "Checkout conversion"
+                                          ? "Checkout completion rate"
                                           : s.id === "promotion"
                                             ? "Order contribution margin"
                                             : "30-day repeat purchase",
@@ -587,7 +611,7 @@ function App() {
                               <div>
                                 <GitBranch size={13} />
                                 <span>
-                                  {finding?.cause || "No release correlated"}
+                                  {finding?.cause || "No related release"}
                                 </span>
                                 {finding && (
                                   <code>{finding.commit_sha?.slice(0, 7)}</code>
@@ -595,7 +619,7 @@ function App() {
                               </div>
                               <p>
                                 {finding?.commits?.[0]?.message ||
-                                  "Run this scenario to inspect the candidate commit and diff."}
+                                  "Run the scenario to evaluate related commits."}
                               </p>
                               {finding?.commits?.[0] && (
                                 <code className="file-path">
@@ -620,7 +644,7 @@ function App() {
                                   } else launch(s.id);
                                 }}
                               >
-                                {finding ? "Open issue" : "Run scenario"}
+                                {finding ? "View incident" : "Run scenario"}
                                 <ArrowRight size={13} />
                               </button>
                             </div>
@@ -632,15 +656,15 @@ function App() {
                     <section className="panel chart-panel">
                       <div className="panel-head">
                         <div>
-                          <h2>Checkout conversion</h2>
-                          <p>Measured from persisted session events</p>
+                          <h2>Checkout completion rate</h2>
+                          <p>Calculated from stored session events.</p>
                         </div>
                         <select
                           aria-label="Chart metric"
                           value={period}
                           onChange={(e) => setPeriod(e.target.value)}
                         >
-                          <option value="hour">Conversion</option>
+                          <option value="hour">Completion rate</option>
                           <option value="revenue">Revenue</option>
                         </select>
                       </div>
@@ -648,7 +672,7 @@ function App() {
                         <span>
                           <i style={{ background: "#3161b9" }} />
                           {period === "hour"
-                            ? "Observed conversion"
+                            ? "Observed completion rate"
                             : "Observed revenue"}
                         </span>
                         {period === "hour" && (
@@ -673,7 +697,7 @@ function App() {
                               tickLine={false}
                               axisLine={false}
                               minTickGap={38}
-                              tick={{ fontSize: 11, fill: "#7a8290" }}
+                              tick={{ fontSize: 12, fill: "#697588" }}
                             />
                             <YAxis
                               domain={
@@ -686,7 +710,7 @@ function App() {
                               }
                               axisLine={false}
                               tickLine={false}
-                              tick={{ fontSize: 11, fill: "#7a8290" }}
+                              tick={{ fontSize: 12, fill: "#697588" }}
                             />
                             <Tooltip
                               formatter={(v) =>
@@ -695,7 +719,7 @@ function App() {
                               contentStyle={{
                                 border: "1px solid #d4d9e0",
                                 borderRadius: 4,
-                                fontSize: 12,
+                                fontSize: 13,
                               }}
                             />
                             {period === "hour" && (
@@ -712,7 +736,9 @@ function App() {
                               type="monotone"
                               dataKey={period === "hour" ? "actual" : "revenue"}
                               name={
-                                period === "hour" ? "Conversion" : "Revenue"
+                                period === "hour"
+                                  ? "Completion rate"
+                                  : "Revenue"
                               }
                               stroke="#3266bb"
                               strokeWidth={2}
@@ -732,8 +758,8 @@ function App() {
                     <section className="panel recent-changes">
                       <div className="panel-head">
                         <div>
-                          <h2>Recent changes</h2>
-                          <p>Releases evaluated in this workspace</p>
+                          <h2>Recent releases</h2>
+                          <p>Releases recorded in this workspace.</p>
                         </div>
                         <button
                           className="text-button"
@@ -760,15 +786,15 @@ function App() {
                         ))
                       ) : (
                         <p className="no-changes">
-                          No deployments yet. Run a scenario to record a
-                          release.
+                          No releases recorded. Run a scenario to create a
+                          release record.
                         </p>
                       )}
                       <div className="integration-note">
                         <span className="status-dot" />
-                        GitHub adapter available{" "}
+                        GitHub import available{" "}
                         <button onClick={() => setView("commits")}>
-                          View commit intelligence <ArrowUpRight size={12} />
+                          View commit analysis <ArrowUpRight size={12} />
                         </button>
                       </div>
                     </section>
@@ -790,17 +816,17 @@ function App() {
                     onClick={() => setView("overview")}
                   >
                     <ArrowLeft size={15} />
-                    Business issues
+                    Regressions
                   </button>
                   <div className="page-head">
                     <div>
                       <div className="eyebrow">
-                        INVESTIGATION / {f.id.slice(0, 8).toUpperCase()}
+                        Incident {f.id.slice(0, 8).toUpperCase()}
                       </div>
                       <h1>{f.title}</h1>
                       <p>
-                        Evidence, suspect commits, and remediation for this
-                        regression.
+                        Measurements, candidate commits, and corrective actions
+                        for this incident.
                       </p>
                     </div>
                     <button className="button" onClick={exportReport}>
@@ -819,8 +845,8 @@ function App() {
                     <div>
                       <small>
                         {f.scenario === "banking"
-                          ? "UNBACKED LEDGER CREDITS"
-                          : "PROJECTED EXPOSURE"}
+                          ? "Unbacked ledger credits"
+                          : "Estimated exposure"}
                       </small>
                       <strong>
                         {money(f.exposure, f.scenario === "banking" ? 2 : 0)}
@@ -830,15 +856,15 @@ function App() {
                       </strong>
                     </div>
                     <div>
-                      <small>AFFECTED SEGMENT</small>
+                      <small>Affected segment</small>
                       <strong>{f.segment}</strong>
                     </div>
                     <div>
-                      <small>LIKELY CHANGE</small>
+                      <small>Candidate release</small>
                       <strong className="mono">{f.cause}</strong>
                     </div>
                     <div>
-                      <small>CORRELATION SCORE</small>
+                      <small>Candidate score</small>
                       <strong>
                         {Math.round(f.score * 100)}
                         <em> / 100</em>
@@ -855,8 +881,8 @@ function App() {
                               Analysis
                             </h2>
                             <p>
-                              {investigation?.provider || f.reasoning_provider}{" "}
-                              · Evidence-based explanation
+                              Provider:{" "}
+                              {investigation?.provider || f.reasoning_provider}
                             </p>
                           </div>
                           <button
@@ -869,7 +895,7 @@ function App() {
                             ) : (
                               <Sparkles size={15} />
                             )}
-                            Investigate
+                            Run analysis
                           </button>
                         </div>
                         <p className="briefing">
@@ -877,18 +903,18 @@ function App() {
                         </p>
                         {investigation?.recommended_verification && (
                           <p className="verification">
-                            Next verification:{" "}
+                            Verification step:{" "}
                             {investigation.recommended_verification}
                           </p>
                         )}
                         <div className="confidence-note">
                           <ShieldCheck size={15} />
-                          {f.confidence_label}. Review supporting evidence
-                          before acting.
+                          {f.confidence_label}. Review the measurements before
+                          applying a correction.
                         </div>
                       </section>
                       <section className="panel investigation-panel">
-                        <h2>Supporting evidence</h2>
+                        <h2>Measurements</h2>
                         {f.evidence.map((e, i) => (
                           <div className="evidence" key={e.label}>
                             <span className="evidence-number">0{i + 1}</span>
@@ -904,43 +930,45 @@ function App() {
                       {f.segments.length > 0 && (
                         <section className="panel investigation-panel">
                           <h2>Segment comparison</h2>
-                          <table>
-                            <thead>
-                              <tr>
-                                <th>Customer segment</th>
-                                <th>Baseline</th>
-                                <th>Current</th>
-                                <th>Sessions</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {f.segments.map((s) => (
-                                <tr key={s.name}>
-                                  <td>{s.name}</td>
-                                  <td>{pct(s.baseline)}</td>
-                                  <td
-                                    className={
-                                      s.baseline - s.actual > 0.1
-                                        ? "risk-text"
-                                        : ""
-                                    }
-                                  >
-                                    {pct(s.actual)}
-                                  </td>
-                                  <td>{s.sessions.toLocaleString()}</td>
+                          <div className="table-scroll">
+                            <table>
+                              <thead>
+                                <tr>
+                                  <th>Customer segment</th>
+                                  <th>Baseline</th>
+                                  <th>Current</th>
+                                  <th>Sessions</th>
                                 </tr>
-                              ))}
-                            </tbody>
-                          </table>
+                              </thead>
+                              <tbody>
+                                {f.segments.map((s) => (
+                                  <tr key={s.name}>
+                                    <td>{s.name}</td>
+                                    <td>{pct(s.baseline)}</td>
+                                    <td
+                                      className={
+                                        s.baseline - s.actual > 0.1
+                                          ? "risk-text"
+                                          : ""
+                                      }
+                                    >
+                                      {pct(s.actual)}
+                                    </td>
+                                    <td>{s.sessions.toLocaleString()}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
                         </section>
                       )}
                       <section className="panel investigation-panel">
                         <div className="panel-head">
                           <div>
-                            <h2>Suspect commits</h2>
+                            <h2>Candidate commits</h2>
                             <p>
-                              Ranked by timing, affected files, and diff
-                              relevance. Synthetic fixtures.
+                              Ranked by commit time, changed files, and diff
+                              terms. These commits are synthetic.
                             </p>
                           </div>
                         </div>
@@ -964,13 +992,13 @@ function App() {
                         <h2>
                           {f.scenario === "banking"
                             ? "Reconciliation amount"
-                            : "Dollar impact methodology"}
+                            : "Impact calculation"}
                         </h2>
                         <code className="formula">{f.formula}</code>
                         <p className="muted">
                           {f.scenario === "banking"
-                            ? "The engine sums ledger credits without settlement evidence. This is an observed accounting discrepancy in the synthetic records. Recovery records explicit reversals."
-                            : "The engine calculates this value from observed counts and explicit seller assumptions. It projects exposure if the pattern persists. It does not measure realized loss or proven savings."}
+                            ? "The amount is the sum of synthetic ledger credits without confirmed settlement. Correction entries record the reversal of these credits."
+                            : "This estimate uses measured sample rates and configured seller volume. It assumes that the observed pattern persists. It does not represent realized loss or savings."}
                         </p>
                       </section>
                     </div>
@@ -983,8 +1011,8 @@ function App() {
                       >
                         <div className="eyebrow">
                           {f.status === "recovered"
-                            ? "RECOVERY VERIFIED"
-                            : "RECOMMENDED RESPONSE"}
+                            ? "Recovery verified"
+                            : "Recommended action"}
                         </div>
                         <span className="action-icon">
                           {f.status === "recovered" ? (
@@ -997,13 +1025,13 @@ function App() {
                           {f.status === "recovered"
                             ? f.scenario === "banking"
                               ? "Ledger reconciliation verified"
-                              : "Healthy outcomes restored"
+                              : "Metric recovery verified"
                             : f.action}
                         </h2>
                         <p>
                           {f.status === "recovered"
                             ? f.recovery_summary
-                            : "Apply the fix to the synthetic generator, then verify the affected business metric."}
+                            : "Apply the simulated correction, then verify the affected metric."}
                         </p>
                         <button
                           className="button primary full"
@@ -1027,11 +1055,9 @@ function App() {
                           )}{" "}
                           {f.status === "recovered"
                             ? "Recovery confirmed"
-                            : "Simulate remediation"}
+                            : "Simulate fix"}
                         </button>
-                        <small>
-                          Demo action. No production system changes.
-                        </small>
+                        <small>This action changes synthetic data only.</small>
                         <button
                           className="text-button"
                           disabled={busy}
@@ -1039,7 +1065,7 @@ function App() {
                             mutate(
                               "actions",
                               { action: "assign", finding_id: f.id },
-                              "Incident assigned to you",
+                              "Incident assigned to you.",
                             )
                           }
                         >
@@ -1070,9 +1096,18 @@ function App() {
                           {f.status === "recovered" && (
                             <div>
                               <span className="timeline-dot green-dot" />
-                              <small>NOW</small>
+                              <small>
+                                {f.recovered_at
+                                  ? new Date(f.recovered_at)
+                                      .toISOString()
+                                      .slice(11, 16)
+                                  : "Recovery"}
+                              </small>
                               <strong>Recovery verified</strong>
-                              <p>New traffic confirms healthy outcomes</p>
+                              <p>
+                                Recovery checks completed for the synthetic
+                                data.
+                              </p>
                             </div>
                           )}
                         </div>
@@ -1084,9 +1119,9 @@ function App() {
               {view === "incidents" && (
                 <>
                   <PageHead
-                    eyebrow="INVESTIGATIONS"
+                    eyebrow="Incident history"
                     title="Incidents"
-                    description="Every business regression, with its evidence and response."
+                    description="Review incident status, measurements, and corrective actions."
                   />
                   <div className="search">
                     <Search size={18} />
@@ -1134,18 +1169,16 @@ function App() {
                         key={x.id}
                         finding={x}
                         onClick={() => {
-                          if (x.id === f?.id) setView("investigation");
-                          else
-                            setToast(
-                              "This historical incident is included in the activity log.",
-                            );
+                          setSelectedId(x.id);
+                          setInvestigation(null);
+                          setView("investigation");
                         }}
                       />
                     ))}
                   {data.history.length === 0 && (
                     <Empty
-                      title="Your first investigation starts with a change"
-                      description="Run a demo scenario to generate customer events and detect a business regression."
+                      title="No incidents recorded"
+                      description="Run a scenario to generate synthetic events and detect a regression."
                       action={() => setDemo(true)}
                     />
                   )}
@@ -1154,53 +1187,54 @@ function App() {
               {view === "changes" && (
                 <>
                   <PageHead
-                    eyebrow="CHANGE INTELLIGENCE"
-                    title="Every change has a business footprint"
-                    description="Connect releases and business decisions to the customer journeys they affect."
+                    eyebrow="Release history"
+                    title="Releases"
+                    description="Review recorded releases and the components they changed."
                   />
                   <div className="panel table-panel">
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Change</th>
-                          <th>Components</th>
-                          <th>Recorded</th>
-                          <th>Monitoring</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {data.deployments.map((d) => (
-                          <tr key={d.id}>
-                            <td>
-                              <GitBranch size={15} />{" "}
-                              <strong>{d.version}</strong>
-                            </td>
-                            <td>{JSON.parse(d.components).join(", ")}</td>
-                            <td>
-                              {new Date(d.timestamp).toLocaleTimeString()}
-                            </td>
-                            <td>
-                              <span className="badge green">Evaluated</span>
-                            </td>
+                    <div className="table-scroll">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Change</th>
+                            <th>Components</th>
+                            <th>Recorded</th>
+                            <th>Monitoring</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {data.deployments.map((d) => (
+                            <tr key={d.id}>
+                              <td>
+                                <GitBranch size={15} />{" "}
+                                <strong>{d.version}</strong>
+                              </td>
+                              <td>{JSON.parse(d.components).join(", ")}</td>
+                              <td>
+                                {new Date(d.timestamp).toLocaleTimeString()}
+                              </td>
+                              <td>
+                                <span className="badge green">Evaluated</span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                     {!data.deployments.length && (
                       <Empty
-                        title="No changes recorded yet"
-                        description="Introduce a release, promotion, or routing change using the scenario controls."
+                        title="No releases recorded"
+                        description="Run a scenario to create a release record."
                         action={() => setDemo(true)}
                       />
                     )}
                   </div>
                   <div className="info-block">
-                    <h2>Watch the outcome, beyond the deploy</h2>
+                    <h2>Release correlation</h2>
                     <p>
-                      ImpactGuard maps the changed component to a customer
-                      journey. Temporal proximity, segment overlap and
-                      supporting telemetry rank candidate causes. These scores
-                      support investigation and do not establish causality.
+                      The detector ranks candidate commits by commit time,
+                      service file paths, and diff terms. The score does not
+                      establish causation.
                     </p>
                   </div>
                 </>
@@ -1208,9 +1242,9 @@ function App() {
               {view === "graph" && (
                 <>
                   <PageHead
-                    eyebrow="BUSINESS IMPACT GRAPH"
-                    title="The path from a change to a dollar"
-                    description="A shared map for engineering, operations, and the business."
+                    eyebrow="Dependency configuration"
+                    title="Metric dependencies"
+                    description="Configured relationships between components, customer activity, and business metrics."
                   />
                   <section className="panel graph-panel">
                     {[
@@ -1219,7 +1253,7 @@ function App() {
                         nodes: [
                           "checkout-service",
                           "Payment redirect",
-                          "Checkout conversion",
+                          "Checkout completion rate",
                           "Order revenue",
                         ],
                       },
@@ -1236,15 +1270,15 @@ function App() {
                         name: "Retention",
                         nodes: [
                           "Carrier routing",
-                          "Delivery experience",
-                          "Repeat purchase",
+                          "Delivery time",
+                          "Repeat purchase rate",
                           "Customer revenue",
                         ],
                       },
                     ].map((g, i) => (
                       <div className="graph-journey" key={g.name}>
                         <div className="eyebrow">
-                          0{i + 1} / {g.name.toUpperCase()}
+                          0{i + 1} / {g.name}
                         </div>
                         <div className="graph-chain">
                           {g.nodes.map((node, j) => (
@@ -1257,10 +1291,10 @@ function App() {
                                 <small>
                                   {
                                     [
-                                      "CHANGE",
-                                      "CUSTOMER JOURNEY",
-                                      "BUSINESS METRIC",
-                                      "DOLLAR OUTCOME",
+                                      "Component",
+                                      "Customer activity",
+                                      "Business metric",
+                                      "Financial measure",
                                     ][j]
                                   }
                                 </small>
@@ -1281,12 +1315,11 @@ function App() {
                     ))}
                   </section>
                   <div className="info-block">
-                    <h2>Built for decisions across teams</h2>
+                    <h2>Dependency configuration</h2>
                     <p>
-                      A declared relationship graph narrows which metrics to
-                      inspect after a change. The current graph is explicit
-                      configuration. Automatic graph discovery belongs on the
-                      production roadmap.
+                      The graph defines which metrics to check after a component
+                      changes. These relationships are configured explicitly.
+                      Automatic dependency discovery is not implemented.
                     </p>
                   </div>
                 </>
@@ -1296,12 +1329,12 @@ function App() {
                   <div className="page-head">
                     <div>
                       <div className="eyebrow">
-                        BANKING / SETTLEMENT RECONCILIATION
+                        Banking / settlement reconciliation
                       </div>
                       <h1>Unbacked credits</h1>
                       <p>
-                        Compare application success, bank settlement evidence,
-                        and ledger postings.
+                        Compare application status, bank settlement status, and
+                        ledger postings.
                       </p>
                     </div>
                     <button
@@ -1357,10 +1390,10 @@ function App() {
                     )}
                     <strong>
                       {data.banking.mismatches
-                        ? "Reconciliation failed. App success does not match settlement."
+                        ? "Settlement status and ledger postings do not match."
                         : data.banking.total
-                          ? "Reconciled. Original postings and reversal entries retained."
-                          : "No banking scenario evaluated yet."}
+                          ? "Reconciliation completed. Original postings and correction entries are retained."
+                          : "No bank transactions available. Run the banking scenario."}
                     </strong>
                     {data.history.find((x) => x.scenario === "banking") && (
                       <button
@@ -1373,7 +1406,7 @@ function App() {
                           setView("investigation");
                         }}
                       >
-                        Investigate suspect commit <ArrowRight size={14} />
+                        View incident <ArrowRight size={14} />
                       </button>
                     )}
                   </div>
@@ -1384,74 +1417,75 @@ function App() {
                         Synthetic bank records · sample of affected transfers
                       </span>
                     </div>
-                    <table>
-                      <thead>
-                        <tr>
-                          <th>Transaction</th>
-                          <th>Bank status</th>
-                          <th>App status</th>
-                          <th>Amount</th>
-                          <th>Reconciliation</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {data.banking.transactions.map((t) => (
-                          <tr key={t.id}>
-                            <td>
-                              <code>{t.id}</code>
-                            </td>
-                            <td>
-                              <span className="badge orange">
-                                {t.bank_status}
-                              </span>
-                            </td>
-                            <td>
-                              <span
-                                className={
-                                  "badge " +
-                                  (t.app_status === "success"
-                                    ? "orange"
-                                    : "green")
-                                }
-                              >
-                                {t.app_status}
-                              </span>
-                            </td>
-                            <td>{money(t.amount, 2)}</td>
-                            <td>
-                              <span
-                                className={
-                                  "badge " +
-                                  (t.app_status === "success"
-                                    ? "orange"
-                                    : "green")
-                                }
-                              >
-                                {t.app_status === "success"
-                                  ? "Unbacked credit"
-                                  : "Reversed"}
-                              </span>
-                            </td>
+                    <div className="table-scroll">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Transaction</th>
+                            <th>Bank status</th>
+                            <th>Application status</th>
+                            <th>Amount</th>
+                            <th>Reconciliation</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {data.banking.transactions.map((t) => (
+                            <tr key={t.id}>
+                              <td>
+                                <code>{t.id}</code>
+                              </td>
+                              <td>
+                                <span className="badge orange">
+                                  {t.bank_status}
+                                </span>
+                              </td>
+                              <td>
+                                <span
+                                  className={
+                                    "badge " +
+                                    (t.app_status === "success"
+                                      ? "orange"
+                                      : "green")
+                                  }
+                                >
+                                  {t.app_status}
+                                </span>
+                              </td>
+                              <td>{money(t.amount, 2)}</td>
+                              <td>
+                                <span
+                                  className={
+                                    "badge " +
+                                    (t.app_status === "success"
+                                      ? "orange"
+                                      : "green")
+                                  }
+                                >
+                                  {t.app_status === "success"
+                                    ? "Unbacked credit"
+                                    : "Reversed"}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                     {!data.banking.total && (
                       <div className="no-changes">
-                        Run the banking scenario to generate a buggy callback
-                        mapper, bank settlement records, and actual ledger
-                        entries.
+                        Run the banking scenario to generate synthetic
+                        transactions, settlement statuses, and ledger postings.
                       </div>
                     )}
                   </section>
                   <div className="info-block">
-                    <h2>Settlement evidence is the accounting boundary</h2>
+                    <h2>Reconciliation rules</h2>
                     <p>
-                      A success flag in an application is not cash settlement.
-                      The detector checks the bank outcome against the ledger.
-                      The demo fix records a reversal for each erroneous credit
-                      and keeps the original posting. Production systems would
-                      also verify cash movement and apply approved accounting
+                      A credit requires confirmed settlement. The detector
+                      compares bank status with application status and the net
+                      ledger balance. The simulated correction records reversal
+                      entries and retains the original postings. Production use
+                      requires verified settlement data and approved accounting
                       controls.
                     </p>
                   </div>
@@ -1460,9 +1494,9 @@ function App() {
               {view === "commits" && (
                 <>
                   <PageHead
-                    eyebrow="CODE INTELLIGENCE"
-                    title="Commit intelligence"
-                    description="Inspect the code changes that could explain a business regression."
+                    eyebrow="Commit correlation"
+                    title="Commit analysis"
+                    description="Review candidate commits and their diffs."
                   />
                   <section className="panel github-connect">
                     <div>
@@ -1470,7 +1504,7 @@ function App() {
                       <p>
                         {github?.connected
                           ? github.repo + " · read-only sync"
-                          : "No repository connected. The demo below uses synthetic commit fixtures."}
+                          : "No repository is connected. The commits below are synthetic examples."}
                       </p>
                     </div>
                     <div className="connect-input">
@@ -1489,7 +1523,7 @@ function App() {
                             setGithub(
                               await api("github/connect", { repo: repoInput }),
                             );
-                            setToast("Read-only commit sync complete");
+                            setToast("Commit import completed.");
                           } catch (e) {
                             setError(e.message);
                           } finally {
@@ -1531,7 +1565,13 @@ function App() {
                             <strong>{c.message}</strong>
                             <small>
                               {c.author} ·{" "}
-                              {new Date(c.timestamp).toLocaleString()}
+                              {new Date(c.timestamp).toLocaleString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
                             </small>
                           </div>
                           {c.score !== undefined && (
@@ -1581,13 +1621,13 @@ function App() {
                     )}
                   </section>
                   <div className="info-block">
-                    <h2>How candidate ranking works</h2>
+                    <h2>Commit ranking</h2>
                     <p>
-                      Timing contributes 30%, service file overlap 30%, relevant
-                      diff terms 25%, and affected segment evidence 15%. A high
-                      score indicates a plausible candidate for investigation.
-                      Production attribution also needs a deployment-to-commit
-                      mapping and a measured anomaly onset.
+                      The score uses commit time (30%), service file overlap
+                      (30%), relevant diff terms (25%), and affected segment
+                      terms (15%). Production attribution also requires a
+                      verified deployment commit and the time the metric
+                      changed.
                     </p>
                   </div>
                 </>
@@ -1595,9 +1635,9 @@ function App() {
               {view === "sources" && (
                 <>
                   <PageHead
-                    eyebrow="DATA FOUNDATION"
-                    title="One contract. A complete business picture."
-                    description="The demo uses synthetic customer events. Production connectors can use the same ingestion boundary."
+                    eyebrow="Event ingestion"
+                    title="Data sources"
+                    description="View data source status and the event ingestion endpoint."
                   />
                   <div className="source-grid">
                     {[
@@ -1614,12 +1654,12 @@ function App() {
                       [
                         "Google Cloud",
                         "Not connected",
-                        "Cloud Run, Pub/Sub, BigQuery and Vertex AI setup is prepared for your personal project.",
+                        "Cloud services are not connected. The repository includes a Cloud Run deployment guide and BigQuery schema templates.",
                       ],
                       [
-                        "Commerce & support",
-                        "Roadmap",
-                        "Shopify, Stripe and support connectors are on the roadmap. A read-only GitHub adapter is available in Commit intelligence.",
+                        "Commerce and support",
+                        "Not implemented",
+                        "Shopify, Stripe, and support integrations are not implemented. Read-only GitHub import is available in Commit analysis.",
                       ],
                     ].map(([title, status, desc]) => (
                       <div className="panel source-card" key={title}>
@@ -1641,12 +1681,12 @@ function App() {
                   </div>
                   <section className="panel code-panel">
                     <div className="panel-head">
-                      <h2>Send your first event</h2>
+                      <h2>Event ingestion example</h2>
                       <button
                         className="text-button"
                         onClick={() => {
                           navigator.clipboard.writeText(example);
-                          setToast("Example copied");
+                          setToast("Example copied to the clipboard.");
                         }}
                       >
                         Copy example <Check size={15} />
@@ -1663,9 +1703,9 @@ function App() {
               {view === "audit" && (
                 <>
                   <PageHead
-                    eyebrow="ACCOUNTABILITY"
-                    title="Activity log"
-                    description="A persistent record of demo changes, detections, and operator actions."
+                    eyebrow="Event history"
+                    title="Audit log"
+                    description="View recorded changes, detections, and operator actions."
                   />
                   <section className="panel audit-panel">
                     {data.audit.map((a, i) => (
@@ -1709,15 +1749,11 @@ function App() {
             >
               <X size={20} />
             </button>
-            <div className="eyebrow">THE IMPACTGUARD DEMO</div>
-            <h2 id="demo-title">
-              Introduce a change.
-              <br />
-              Watch the business impact.
-            </h2>
+            <div className="eyebrow">Synthetic data</div>
+            <h2 id="demo-title">Run a demo scenario</h2>
             <p>
-              Generate real, persisted synthetic events. The engine measures the
-              regression and calculates its exposure.
+              Choose a scenario to generate synthetic events and investigate its
+              business impact.
             </p>
             {scenarios.map((s) => (
               <button
@@ -1752,7 +1788,7 @@ function App() {
                 const d = await mutate(
                   "reset",
                   {},
-                  "Demo reset to a healthy baseline",
+                  "Scenario data reset to baseline.",
                 );
                 if (d) {
                   setDemo(false);
@@ -1762,11 +1798,10 @@ function App() {
               }}
             >
               <RotateCcw size={15} />
-              Reset to healthy baseline
+              Reset demo data
             </button>
             <small className="modal-disclosure">
-              All data and actions are synthetic. No connected accounts are
-              used.
+              Scenarios use synthetic data. They do not modify external systems.
             </small>
           </section>
         </div>
@@ -1777,24 +1812,6 @@ function App() {
           {toast}
         </div>
       )}
-    </div>
-  );
-}
-function Metric({ title, value, suffix, detail, warn, icon: Icon }) {
-  return (
-    <div className={"metric " + (warn ? "metric-risk" : "")}>
-      <div className="metric-label">
-        {title}
-        <Icon size={15} />
-      </div>
-      <div className="metric-value">
-        {value}
-        <small>{suffix}</small>
-      </div>
-      <div className="metric-detail">
-        {warn && <span className="status-dot" />}
-        {detail}
-      </div>
     </div>
   );
 }
@@ -1844,7 +1861,7 @@ function IncidentCard({ finding: f, onClick }) {
               "badge " + (f.status === "recovered" ? "green" : "orange")
             }
           >
-            {f.status === "recovered" ? "Recovered" : f.severity}
+            {f.status === "recovered" ? "Resolved" : f.severity}
           </span>
           <strong>{f.title}</strong>
         </div>
@@ -1862,11 +1879,13 @@ function IncidentCard({ finding: f, onClick }) {
         <span>
           {f.scenario === "banking"
             ? "Observed reconciliation discrepancy"
-            : `Projected ${f.scenario === "promotion" ? "margin" : "revenue"} exposure`}
+            : f.scenario === "promotion"
+              ? "Estimated margin loss"
+              : "Estimated revenue exposure"}
         </span>
       </div>
       <span className="investigate-link">
-        Investigate <ArrowUpRight size={16} />
+        View incident <ArrowUpRight size={16} />
       </span>
     </button>
   );

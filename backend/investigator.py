@@ -7,7 +7,7 @@ def investigate(finding):
     project = os.getenv("GCP_PROJECT")
     if not project or os.getenv("CLOUD_ENABLED") != "1":
         return {
-            "provider": "Evidence rules",
+            "provider": "Rule-based analysis",
             "summary": finding["summary"],
             "limitation": "Gemini is not configured. This explanation comes from deterministic evidence rules.",
         }
@@ -40,7 +40,7 @@ def investigate(finding):
     }
     response = client.models.generate_content(
         model=model,
-        contents="Investigate this business anomaly using only this evidence. Explain observations, likely cause, uncertainty and recommended verification. Do not claim proven causation. Do not calculate or invent money. Return JSON with summary and recommended_verification. Evidence: "
+        contents="Investigate this business anomaly using only this evidence. Explain observations, candidate causes, uncertainty, and verification steps. Use concise technical English, short declarative sentences, active voice, and standard American spelling. Avoid slogans, metaphors, and marketing language. Do not claim proven causation. Do not calculate or invent money. Return JSON with summary and recommended_verification. Evidence: "
         + json.dumps(evidence),
         config=types.GenerateContentConfig(
             response_mime_type="application/json",

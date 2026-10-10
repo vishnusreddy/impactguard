@@ -12,7 +12,7 @@ Buyer hypothesis: an independent Shopify seller with an agency or developer main
 
 ## 0:40–1:10 — Healthy system
 
-Show Business issues. Explain the event count and observed revenue. Point out that this is synthetic traffic and a real persisted event pipeline.
+Show Regressions. Explain the event count and observed revenue. Point out that this is synthetic traffic and a real persisted event pipeline.
 
 Click Run scenario → Checkout regression.
 
@@ -32,11 +32,11 @@ Click Investigate. “This offline demo uses evidence rules. The optional Vertex
 
 ## 2:15–3:00 — Respond and verify
 
-Click Simulate remediation.
+Click Simulate fix.
 
 “This restores healthy behavior in the generator, then measures six thousand fresh sessions. The recovery is measured. It is not a cosmetic status toggle or a production rollback.”
 
-Point to healthy conversion and recovered status. Return to Business issues.
+Point to healthy conversion and recovered status. Return to Regressions.
 
 ## 3:00–3:35 — Broader business coverage
 
@@ -50,7 +50,7 @@ Resolve the active commerce scenario. Open Reconciliation and run the banking sc
 
 “Failed and pending bank callbacks fall through to application success. ImpactGuard compares that flag with settlement evidence and ledger postings. It does not assume cash arrived because the app says success.”
 
-Simulate remediation. Show 200 reversal entries, zero mismatches, and green reconciliation status. Original credit postings remain in the ledger. The engine also detects duplicate and missing postings.
+Simulate fix. Show 200 reversal entries, zero mismatches, and green reconciliation status. Original credit postings remain in the ledger. The engine also detects duplicate and missing postings.
 
 ## 4:30–5:00 — Why a team buys it
 

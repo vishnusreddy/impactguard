@@ -25,7 +25,7 @@ Development: run the Python server and `npm run dev` in separate terminals. Vite
 1. Run **Checkout regression**. The generator persists 6,000 sessions for the current simulated hour and compares them with 30,000 historical sessions across 30 days.
 2. Open the issue. Inspect affected segments, statistical evidence, the suspect commit, and its diff.
 3. Click **Investigate** for a deterministic evidence explanation. The provider label is explicit. Optional Vertex AI support requires explicit configuration below.
-4. Click **Simulate remediation**. The engine generates 6,000 new healthy sessions and shows measured recovery. No real rollback occurs. For banking, remediation appends corrective ledger entries, preserves original postings, and verifies zero remaining reconciliation mismatches.
+4. Click **Simulate fix**. The engine generates 6,000 new healthy sessions and shows measured recovery. No real rollback occurs. For banking, remediation appends corrective ledger entries, preserves original postings, and verifies zero remaining reconciliation mismatches.
 5. Run **Promotion stacking** or **Delivery delays** to evaluate other business regressions. Resolve the active incident before launching the next one. Historical incidents remain accessible.
 6. Export a JSON incident report or review the persistent activity log.
 
@@ -56,7 +56,7 @@ The chart is a two-hour replay: a healthy baseline sample followed by the curren
 
 ## GitHub integration
 
-Use **Commit intelligence**, enter an `owner/repository`, and click **Connect**. Public repositories need no token. For a private repository, start the server with an explicitly selected personal fine-grained read-only token in `IMPACTGUARD_GITHUB_TOKEN`. Do not put a token into the UI or a tracked file. The adapter never reads ambient `gh` credentials. No repository has been connected by this build.
+Use **Commit analysis**, enter an `owner/repository`, and click **Connect**. Public repositories need no token. For a private repository, start the server with an explicitly selected personal fine-grained read-only token in `IMPACTGUARD_GITHUB_TOKEN`. Do not put a token into the UI or a tracked file. The adapter never reads ambient `gh` credentials. No repository has been connected by this build.
 
 `POST /api/github/rank` accepts `{"scenario":"checkout","anomaly_start":"2026-10-10T14:09:00Z"}` after a repository sync. Scoring weights: timing 30%, service-path overlap 30%, diff terms 25%, segment terms 15%. A hypothesis also needs eligibility within the preceding 60 minutes. Diff keyword matching is a starting point, not a semantic code analysis model.
 
