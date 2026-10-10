@@ -1,0 +1,7 @@
+node_modules
+.data
+.git
+.build
+output
+.codex-finalizer
+.env

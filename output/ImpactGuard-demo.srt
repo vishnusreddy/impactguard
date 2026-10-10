@@ -1,0 +1,163 @@
+1
+00:00:00,000 --> 00:00:03,819
+Meet Luma Goods, an independent seller running a Shopify website.
+
+2
+00:00:03,819 --> 00:00:07,345
+They need to know whether a new release helps customers buy.
+
+3
+00:00:07,345 --> 00:00:08,814
+ImpactGuard starts green.
+
+4
+00:00:08,814 --> 00:00:17,452
+This local demo uses synthetic traffic and projects impact for one hundred and twenty checkout starts per day, at an eighty two dollar order value.
+
+5
+00:00:18,452 --> 00:00:21,775
+A payment redirect change now hurts checkout completion.
+
+6
+00:00:21,775 --> 00:00:22,962
+The issue turns red.
+
+7
+00:00:22,962 --> 00:00:30,082
+ImpactGuard estimates six hundred and ninety dollars a day in revenue exposure for this seller, if the pattern persists.
+
+8
+00:00:30,082 --> 00:00:34,829
+This is a calculated scenario projection, not a claim about actual lost revenue.
+
+9
+00:00:35,829 --> 00:00:39,901
+The investigation separates Safari and PayPal from other customers.
+
+10
+00:00:39,901 --> 00:00:44,946
+Their completion rate drops from about seventy two percent to thirty eight percent.
+
+11
+00:00:44,946 --> 00:00:47,256
+Other segments stay close to baseline.
+
+12
+00:00:47,256 --> 00:00:52,300
+The engine shows sample counts, statistical evidence, and the exact dollar formula.
+
+13
+00:00:53,300 --> 00:00:56,291
+The suspect commit changed PayPal token handling.
+
+14
+00:00:56,291 --> 00:01:00,808
+ImpactGuard ranks it using timing, service files, and relevant diff terms.
+
+15
+00:01:00,808 --> 00:01:03,859
+Developers can inspect the changed lines directly.
+
+16
+00:01:03,859 --> 00:01:07,338
+The score identifies a plausible investigation candidate.
+
+17
+00:01:07,338 --> 00:01:10,573
+It does not prove that the commit caused the problem.
+
+18
+00:01:11,573 --> 00:01:14,199
+We simulate rolling back the faulty behavior.
+
+19
+00:01:14,199 --> 00:01:21,143
+ImpactGuard generates six thousand fresh sessions and measures recovered checkout completion, near seventy two percent.
+
+20
+00:01:21,143 --> 00:01:23,477
+The state turns green after measurement.
+
+21
+00:01:23,477 --> 00:01:26,803
+No production rollback or external account action occurs.
+
+22
+00:01:27,803 --> 00:01:30,439
+The next change combines two coupon discounts.
+
+23
+00:01:30,439 --> 00:01:33,190
+Orders can look healthy while profit disappears.
+
+24
+00:01:33,190 --> 00:01:41,156
+ImpactGuard finds negative contribution margin and projects about twelve hundred and thirty five dollars a week of exposure for Luma Goods.
+
+25
+00:01:41,156 --> 00:01:44,021
+The investigation points to the discount combiner.
+
+26
+00:01:45,021 --> 00:01:47,732
+Delivery changes can also affect the seller.
+
+27
+00:01:47,732 --> 00:01:53,522
+Mature synthetic customer cohorts show much lower repeat purchase rates after late deliveries.
+
+28
+00:01:53,522 --> 00:01:58,265
+The annual number is an explicit scenario projection scaled to seller volume.
+
+29
+00:01:58,265 --> 00:02:03,255
+Customer mix remains a possible explanation, so the finding stays an association.
+
+30
+00:02:04,255 --> 00:02:06,407
+The same approach extends to banking.
+
+31
+00:02:06,407 --> 00:02:10,303
+A callback mapper marks failed and pending transfers as successful.
+
+32
+00:02:10,303 --> 00:02:15,770
+ImpactGuard compares two thousand bank outcomes with application statuses and ledger postings.
+
+33
+00:02:15,770 --> 00:02:21,063
+It finds two hundred mismatches and about forty seven thousand dollars in unbacked credits.
+
+34
+00:02:22,063 --> 00:02:23,830
+The diff exposes the mistake.
+
+35
+00:02:23,830 --> 00:02:30,350
+Explicit checks for settled, failed, and pending statuses were replaced by a fallback that reports success.
+
+36
+00:02:30,350 --> 00:02:33,640
+Application success is not evidence that cash arrived.
+
+37
+00:02:33,640 --> 00:02:40,830
+Banking amounts use integer cents, and the reconciliation check evaluates ledger postings against settlement evidence.
+
+38
+00:02:41,830 --> 00:02:47,188
+Remediation records two hundred corrective reversals and retains the original credits.
+
+39
+00:02:47,188 --> 00:02:51,051
+The system verifies zero remaining mismatches and turns green.
+
+40
+00:02:51,051 --> 00:02:56,285
+The project runs locally, with no Shopify, GitHub, bank, or cloud account connected.
+
+41
+00:02:56,285 --> 00:03:01,083
+A real customer pilot would connect verified releases and business telemetry.

@@ -1,0 +1,52 @@
+[
+  {
+    "chapter": "Shopify seller: healthy baseline",
+    "start": 0,
+    "duration": 18.452154
+  },
+  {
+    "chapter": "Regression detected: red issue, $690/day exposure",
+    "start": 18.452154,
+    "duration": 17.376599
+  },
+  {
+    "chapter": "Affected segment: Safari and PayPal",
+    "start": 35.828753,
+    "duration": 17.47161
+  },
+  {
+    "chapter": "Suspect commit: payment redirect token handling",
+    "start": 53.300363,
+    "duration": 18.272925
+  },
+  {
+    "chapter": "Remediation: measure fresh traffic, then turn green",
+    "start": 71.57328799999999,
+    "duration": 16.229660000000003
+  },
+  {
+    "chapter": "Margin leak: stacked coupons cost $1,235/week",
+    "start": 87.80294799999999,
+    "duration": 17.218186
+  },
+  {
+    "chapter": "Customer experience: delayed delivery and retention",
+    "start": 105.02113399999999,
+    "duration": 19.233469
+  },
+  {
+    "chapter": "Banking: 200 unsettled transfers posted as success",
+    "start": 124.25460299999999,
+    "duration": 17.808526
+  },
+  {
+    "chapter": "Suspect commit: failed status falls through to success",
+    "start": 142.063129,
+    "duration": 19.76644
+  },
+  {
+    "chapter": "Reconciliation: 200 reversals, zero remaining mismatches",
+    "start": 161.829569,
+    "duration": 20.253379
+  }
+]

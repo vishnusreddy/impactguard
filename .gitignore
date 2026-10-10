@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.data/
+__pycache__/
+.env
+.build/
+.codex-finalizer/
+.DS_Store
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*.json
+service-account*.json

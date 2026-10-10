@@ -1,0 +1,356 @@
+{
+  "incident": {
+    "id": "a0f9fcfe-2337-435f-b06e-17f86568a0fe",
+    "scenario": "checkout",
+    "status": "active",
+    "created_at": "2026-10-10T13:54:48.313710+00:00",
+    "sample_size": 6000,
+    "reasoning_provider": "Evidence rules",
+    "confidence_label": "Correlation score, not causal probability",
+    "owner": "Unassigned",
+    "notes": [],
+    "baseline": {
+      "n": 30000,
+      "conversion": 0.7206333333333333,
+      "revenue": 1773293.58,
+      "rps": 59.109786,
+      "margin": 638385.72
+    },
+    "actual": {
+      "n": 6000,
+      "conversion": 0.6505,
+      "revenue": 319945.34,
+      "rps": 53.324223333333336,
+      "margin": 115180.41
+    },
+    "z_score": 11.05,
+    "title": "Checkout conversion regression",
+    "severity": "critical",
+    "metric": "Checkout conversion",
+    "unit": "day",
+    "exposure": 690,
+    "score": 0.96,
+    "segment": "Safari + PayPal",
+    "cause": "checkout-v42",
+    "action": "Roll back checkout-v42",
+    "relative_change": 9.7,
+    "segments": [
+      {
+        "name": "Safari / PayPal",
+        "baseline": 0.7168886847343439,
+        "actual": 0.3786936236391913,
+        "sessions": 1286
+      },
+      {
+        "name": "Chrome / PayPal",
+        "baseline": 0.7251784555483453,
+        "actual": 0.7308141799766265,
+        "sessions": 2567
+      },
+      {
+        "name": "Safari / Card",
+        "baseline": 0.7091528979805927,
+        "actual": 0.6948924731182796,
+        "sessions": 744
+      },
+      {
+        "name": "Chrome / Card",
+        "baseline": 0.7222980349344978,
+        "actual": 0.729151817533856,
+        "sessions": 1403
+      }
+    ],
+    "summary": "The conversion decline is concentrated in Safari sessions using PayPal. The affected release changed the payment redirect handler seven minutes before the simulated decline. Unaffected segments remain close to baseline. This supports a release regression hypothesis, but does not prove causation.",
+    "formula": "120 seller checkout starts/day × (0.7206 − 0.6505) × $82 assumed order value",
+    "evidence": [
+      {
+        "label": "Segment isolation",
+        "value": "71.7% → 37.9% conversion",
+        "detail": "Safari / PayPal sessions, measured from persisted events"
+      },
+      {
+        "label": "Statistical signal",
+        "value": "11.1 standard errors below baseline",
+        "detail": "Two-proportion comparison using 30,000 baseline and 6,000 current sessions"
+      },
+      {
+        "label": "Change correlation",
+        "value": "7 minute simulated lead time",
+        "detail": "Release modified paypal_redirect and payment_retry"
+      }
+    ],
+    "commits": [
+      {
+        "sha": "a8f31c29481b42cdda759f330937ae08b3ae99cc",
+        "message": "refactor(checkout): simplify PayPal return redirect",
+        "author": "Alex Morgan",
+        "timestamp": "2026-10-10T12:47:48.332070+00:00",
+        "source": "Synthetic fixture",
+        "repo": "acme/commerce-demo",
+        "files": [
+          {
+            "filename": "src/checkout/paypal-redirect.ts",
+            "additions": 12,
+            "deletions": 8,
+            "patch": "@@ -42,5 +42,5 @@ export function completePayPalReturn(session) {\n- const token = sessionStorage.getItem('paypal_token');\n- return confirmOrder({ token, orderId: session.orderId });\n+ const token = new URLSearchParams(location.search).get('token');\n+ return confirmOrder({ token, orderId: session.orderId });\n }\n// Simulated regression: Safari return navigation can omit query token."
+          }
+        ],
+        "score": 0.96,
+        "reasons": [
+          "Committed 7 minutes before the anomaly",
+          "Changed files belong to the affected service",
+          "Relevant diff terms: checkout, paypal, redirect, token"
+        ],
+        "factors": {
+          "timing": 0.88,
+          "service": 1,
+          "diff_association": 1,
+          "segment": 1
+        },
+        "eligible": true
+      },
+      {
+        "sha": "e921bd05a3784d2948a0a92dd5043109fbe7415a",
+        "message": "refactor(banking): unify payment callback statuses",
+        "author": "Jamie Chen",
+        "timestamp": "2026-10-10T12:47:48.332070+00:00",
+        "source": "Synthetic fixture",
+        "repo": "acme/commerce-demo",
+        "files": [
+          {
+            "filename": "src/banking/settlement-status-mapper.ts",
+            "additions": 4,
+            "deletions": 6,
+            "patch": "@@ -31,4 +31,2 @@ function mapPaymentStatus(bankStatus) {\n- if (bankStatus === 'settled') return 'success';\n- if (bankStatus === 'failed') return 'failed';\n- return 'pending';\n+ return bankStatus === 'cancelled' ? 'failed' : 'success';\n }"
+          }
+        ],
+        "score": 0.35,
+        "reasons": [
+          "Committed 7 minutes before the anomaly",
+          "Relevant diff terms: payment"
+        ],
+        "factors": {
+          "timing": 0.88,
+          "service": 0,
+          "diff_association": 0.33,
+          "segment": 0
+        },
+        "eligible": true
+      },
+      {
+        "sha": "c516ee849abc42072faf24a718c4b9a4875f6001",
+        "message": "feat(promotions): allow multiple campaign codes",
+        "author": "Alex Morgan",
+        "timestamp": "2026-10-10T12:47:48.332070+00:00",
+        "source": "Synthetic fixture",
+        "repo": "acme/commerce-demo",
+        "files": [
+          {
+            "filename": "src/promotions/discount-combiner.ts",
+            "additions": 9,
+            "deletions": 4,
+            "patch": "@@ -21,2 +21,2 @@\n- const discount = Math.max(...coupons.map(c => c.percent));\n+ const discount = coupons.reduce((sum, c) => sum + c.percent, 0);\n  return subtotal * (1 - discount / 100);"
+          }
+        ],
+        "score": 0.26,
+        "reasons": [
+          "Committed 7 minutes before the anomaly"
+        ],
+        "factors": {
+          "timing": 0.88,
+          "service": 0,
+          "diff_association": 0,
+          "segment": 0
+        },
+        "eligible": false
+      },
+      {
+        "sha": "d112a3aa489a302c0def419990055215bb2f0210",
+        "message": "feat(delivery): prefer economy carrier for US orders",
+        "author": "Sam Rivera",
+        "timestamp": "2026-10-10T12:47:48.332070+00:00",
+        "source": "Synthetic fixture",
+        "repo": "acme/commerce-demo",
+        "files": [
+          {
+            "filename": "src/delivery/carrier-routing.ts",
+            "additions": 7,
+            "deletions": 3,
+            "patch": "@@ -16,1 +16,1 @@\n- return fastestCarrier(order.destination);\n+ return cheapestCarrier(order.destination);"
+          }
+        ],
+        "score": 0.26,
+        "reasons": [
+          "Committed 7 minutes before the anomaly"
+        ],
+        "factors": {
+          "timing": 0.88,
+          "service": 0,
+          "diff_association": 0,
+          "segment": 0
+        },
+        "eligible": false
+      },
+      {
+        "sha": "7d09b62b874658d703a29882ef7e57954faa2810",
+        "message": "feat(marketing): refresh home page hero",
+        "author": "Sam Rivera",
+        "timestamp": "2026-10-10T12:33:48.332070+00:00",
+        "source": "Synthetic fixture",
+        "repo": "acme/commerce-demo",
+        "files": [
+          {
+            "filename": "src/marketing/hero.tsx",
+            "additions": 6,
+            "deletions": 2,
+            "patch": "@@ -12,2 +12,2 @@\n- <h1>Shop the collection</h1>\n+ <h1>Discover the new collection</h1>"
+          }
+        ],
+        "score": 0.2,
+        "reasons": [
+          "Committed 21 minutes before the anomaly"
+        ],
+        "factors": {
+          "timing": 0.65,
+          "service": 0,
+          "diff_association": 0,
+          "segment": 0
+        },
+        "eligible": false
+      },
+      {
+        "sha": "b429e0198347480e870f86581ac22690e5a052be",
+        "message": "fix(catalog): normalize product labels",
+        "author": "Jamie Chen",
+        "timestamp": "2026-10-10T12:17:48.332070+00:00",
+        "source": "Synthetic fixture",
+        "repo": "acme/commerce-demo",
+        "files": [
+          {
+            "filename": "src/catalog/labels.ts",
+            "additions": 3,
+            "deletions": 1,
+            "patch": "@@ -8,1 +8,1 @@\n- return label;\n+ return label.trim();"
+          }
+        ],
+        "score": 0.11,
+        "reasons": [
+          "Committed 37 minutes before the anomaly"
+        ],
+        "factors": {
+          "timing": 0.38,
+          "service": 0,
+          "diff_association": 0,
+          "segment": 0
+        },
+        "eligible": false
+      }
+    ],
+    "commit_sha": "a8f31c29481b42cdda759f330937ae08b3ae99cc",
+    "timeline": [
+      {
+        "time": "12:47",
+        "title": "Business change shipped",
+        "detail": "checkout-v42"
+      },
+      {
+        "time": "12:54",
+        "title": "Customer outcome diverged",
+        "detail": "Safari + PayPal"
+      },
+      {
+        "time": "12:56",
+        "title": "Metric crossed threshold",
+        "detail": "Checkout conversion"
+      },
+      {
+        "time": "12:59",
+        "title": "Investigation ready",
+        "detail": "Evidence correlated and dollar exposure calculated"
+      }
+    ]
+  },
+  "audit": [
+    {
+      "timestamp": "2026-10-10T13:54:48.332267+00:00",
+      "action": "Regression detected",
+      "detail": "Checkout conversion regression. Deterministic detector evaluated 6,000 sessions."
+    },
+    {
+      "timestamp": "2026-10-10T13:54:48.332243+00:00",
+      "action": "Change introduced",
+      "detail": "checkout-v42: simulated regression injected into customer events."
+    },
+    {
+      "timestamp": "2026-10-10T13:54:48.155737+00:00",
+      "action": "Simulated remediation",
+      "detail": "Reconcile and reverse unbacked credits. Generated 6,000 new healthy sessions to verify recovery."
+    },
+    {
+      "timestamp": "2026-10-10T13:54:48.152863+00:00",
+      "action": "Ledger reconciliation",
+      "detail": "Recorded 200 explicit reversal entries. Original credit postings retained."
+    },
+    {
+      "timestamp": "2026-10-10T13:54:48.031073+00:00",
+      "action": "Regression detected",
+      "detail": "Failed payments posted as settled credits. Deterministic detector evaluated 2,000 sessions."
+    },
+    {
+      "timestamp": "2026-10-10T13:54:48.031052+00:00",
+      "action": "Change introduced",
+      "detail": "payments-adapter-v12: simulated regression injected into customer events."
+    },
+    {
+      "timestamp": "2026-10-10T13:54:47.865157+00:00",
+      "action": "Simulated remediation",
+      "detail": "Restore previous carrier routing. Generated 6,000 new healthy sessions to verify recovery."
+    },
+    {
+      "timestamp": "2026-10-10T13:54:47.745530+00:00",
+      "action": "Regression detected",
+      "detail": "Delivery delays weaken repeat purchases. Deterministic detector evaluated 6,000 sessions."
+    },
+    {
+      "timestamp": "2026-10-10T13:54:47.745509+00:00",
+      "action": "Change introduced",
+      "detail": "delivery-routing-v18: simulated regression injected into customer events."
+    },
+    {
+      "timestamp": "2026-10-10T13:54:47.587565+00:00",
+      "action": "Simulated remediation",
+      "detail": "Disable coupon stacking. Generated 6,000 new healthy sessions to verify recovery."
+    },
+    {
+      "timestamp": "2026-10-10T13:54:47.469885+00:00",
+      "action": "Regression detected",
+      "detail": "Stacked discounts erase order margin. Deterministic detector evaluated 6,000 sessions."
+    },
+    {
+      "timestamp": "2026-10-10T13:54:47.469862+00:00",
+      "action": "Change introduced",
+      "detail": "campaign-stack-v3: simulated regression injected into customer events."
+    },
+    {
+      "timestamp": "2026-10-10T13:54:47.311428+00:00",
+      "action": "Simulated remediation",
+      "detail": "Roll back checkout-v42. Generated 6,000 new healthy sessions to verify recovery."
+    },
+    {
+      "timestamp": "2026-10-10T13:54:47.194673+00:00",
+      "action": "Regression detected",
+      "detail": "Checkout conversion regression. Deterministic detector evaluated 6,000 sessions."
+    },
+    {
+      "timestamp": "2026-10-10T13:54:47.194647+00:00",
+      "action": "Change introduced",
+      "detail": "checkout-v42: simulated regression injected into customer events."
+    },
+    {
+      "timestamp": "2026-10-10T13:54:47.041158+00:00",
+      "action": "Demo reset",
+      "detail": "30 days of historical synthetic sessions and one hour of healthy traffic generated."
+    }
+  ],
+  "disclosure": "Synthetic traffic. Exposure is a projection, correlation does not establish causality."
+}
