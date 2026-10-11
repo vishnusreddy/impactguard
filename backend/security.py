@@ -32,7 +32,13 @@ def redact(value):
 
 
 def safe_file(path):
-    return not re.search(
-        r"(?i)(^|/)(\.env[^/]*|credentials[^/]*|service.account[^/]*|secrets?[^/]*)|\.(pem|key|p12|pfx)$",
-        path,
-    )
+    from pathlib import PurePosixPath
+
+    parts = PurePosixPath(path).parts
+    for part in parts:
+        name = part.lower()
+        if name in (".local", ".secrets", ".git") or name.startswith(".env"):
+            return False
+        if re.search(r"credentials|service[-_]account|secret", name):
+            return False
+    return not path.lower().endswith((".pem", ".key", ".p12", ".pfx", ".env"))

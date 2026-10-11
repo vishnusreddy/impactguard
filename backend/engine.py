@@ -577,11 +577,11 @@ class Engine:
                 "mode": "Synthetic demo",
                 "cloud": {
                     "bigquery": False,
-                    "gemini_configured": bool(
-                        os.getenv("IMPACTGUARD_VERTEX_PROJECT")
-                        and os.getenv("IMPACTGUARD_VERTEX_CREDENTIALS")
-                        and os.getenv("GEMINI_MODEL")
-                    ),
+                    "gemini_configured": __import__("cloud_identity").configured(),
+                },
+                "deployment": {
+                    "environment": "Cloud Run" if os.getenv("K_SERVICE") else "Local",
+                    "durable": bool(os.getenv("IMPACTGUARD_STORAGE_BUCKET")),
                 },
                 "updated_at": now(),
             }

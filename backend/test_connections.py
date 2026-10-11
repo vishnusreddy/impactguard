@@ -50,6 +50,8 @@ class ConnectionTests(unittest.TestCase):
             secret, str(redact({"patch": "token=" + secret, "password": "anything"}))
         )
         self.assertFalse(safe_file(".env.production"))
+        self.assertFalse(safe_file("config/application_default_credentials.json"))
+        self.assertFalse(safe_file(".local/runtime.env"))
         self.assertFalse(safe_file("config/service-account.json"))
         self.assertTrue(safe_file("src/payment.ts"))
 
@@ -132,8 +134,50 @@ class ConnectionTests(unittest.TestCase):
         review_source(self.e, {"finding_id": finding["id"], "action": "resolve"})
         self.assertEqual(state(self.e)["findings"][0]["status"], "resolved")
         self.assertEqual(state(self.e)["snapshots"], original)
+
     def test_concurrent_dashboard_and_connection_state(self):
         from concurrent.futures import ThreadPoolExecutor
+
         with ThreadPoolExecutor(max_workers=4) as pool:
-            results=list(pool.map(lambda i: self.e.dashboard() if i%2 else state(self.e), range(40)))
-        self.assertEqual(len(results),40)
+            results = list(
+                pool.map(
+                    lambda i: self.e.dashboard() if i % 2 else state(self.e), range(40)
+                )
+            )
+        self.assertEqual(len(results), 40)
+
+    def test_ai_receives_normalized_source_windows(self):
+        collect(self.e, {"source": "analytics", "sample": True})
+        with patch(
+            "investigator.investigate",
+            return_value={
+                "classification": "inconclusive",
+                "provider": "test",
+                "summary": "Observed change",
+            },
+        ) as call:
+            analyze(self.e, {"source": "analytics"})
+        evidence = call.call_args.args[0]
+        self.assertNotIn("sessions", evidence["baseline"])
+        self.assertNotIn("orders", evidence["actual"])
+        self.assertGreater(
+            evidence["actual"]["mean_daily_sessions"],
+            evidence["baseline"]["mean_daily_sessions"],
+        )
+        self.assertLess(
+            evidence["actual"]["completion_rate"],
+            evidence["baseline"]["completion_rate"],
+        )
+
+    def test_repeated_analysis_retains_review_state(self):
+        from connections import review_source
+
+        collect(self.e, {"source": "analytics", "sample": True})
+        with patch.dict(os.environ, {}, clear=True):
+            first = analyze(self.e, {"source": "analytics"})
+            review_source(self.e, {"finding_id": first["id"], "action": "ignore"})
+            second = analyze(self.e, {"source": "analytics"})
+        self.assertEqual(first["id"], second["id"])
+        self.assertEqual(second["status"], "ignored")
+        self.assertTrue(second["cached"])
+        self.assertEqual(len(state(self.e)["findings"]), 1)

@@ -5,3 +5,11 @@ node_modules
 output
 .codex-finalizer
 .env
+.local
+.secrets
+.env.*
+*.pem
+*.key
+*credentials*.json
+service-account*.json
+tmp

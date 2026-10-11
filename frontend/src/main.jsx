@@ -128,7 +128,8 @@ function App() {
     [expandedCommit, setExpandedCommit] = useState(null),
     [statusFilter, setStatusFilter] = useState("all"),
     [severityFilter, setSeverityFilter] = useState("all"),
-    [categoryFilter, setCategoryFilter] = useState("all");
+    [categoryFilter, setCategoryFilter] = useState("all"),
+    [publicScenario, setPublicScenario] = useState("checkout");
   useEffect(() => {
     api("github")
       .then((d) => {
@@ -138,18 +139,18 @@ function App() {
         setPolicyInput(d.policy || "");
       })
       .catch(() => {});
-    api("dashboard")
+    api("dashboard?scenario=" + publicScenario)
       .then(setData)
       .catch((e) => setError(e.message));
     const t = setInterval(
       () =>
-        api("dashboard")
+        api("dashboard?scenario=" + publicScenario)
           .then(setData)
           .catch(() => {}),
       5000,
     );
     return () => clearInterval(t);
-  }, []);
+  }, [publicScenario]);
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [view]);
@@ -160,6 +161,10 @@ function App() {
     }
   }, [toast]);
   async function mutate(path, body, message) {
+    if (publicAccess) {
+      setError("Owner access is required to change project data.");
+      return;
+    }
     setBusy(true);
     setError("");
     try {
@@ -174,6 +179,14 @@ function App() {
     }
   }
   async function launch(id) {
+    if (publicAccess) {
+      setPublicScenario(id);
+      setDemo(false);
+      setSelectedId(null);
+      setInvestigation(null);
+      setView(id === "banking" ? "banking" : "overview");
+      return;
+    }
     const d = await mutate(
       "scenarios",
       { scenario: id },
@@ -189,7 +202,9 @@ function App() {
   async function explain() {
     setBusy(true);
     try {
-      setInvestigation(await api("investigate", { finding_id: f.id }));
+      setInvestigation(
+        await api("investigate", { finding_id: f.id, scenario: f.scenario }),
+      );
     } catch (e) {
       setError(e.message);
     } finally {
@@ -198,7 +213,9 @@ function App() {
   }
   async function exportReport() {
     try {
-      const d = await api("export" + (f ? "?finding_id=" + f.id : ""));
+      const d = await api(
+        "export?scenario=" + publicScenario + (f ? "&finding_id=" + f.id : ""),
+      );
       const url = URL.createObjectURL(
         new Blob([JSON.stringify(d, null, 2)], { type: "application/json" }),
       );
@@ -216,7 +233,8 @@ function App() {
       (view === "investigation" && selectedId
         ? data?.history.find((x) => x.id === selectedId)
         : null) || data?.finding,
-    active = data?.status === "active" && Boolean(f);
+    active = data?.status === "active" && Boolean(f),
+    publicAccess = data?.deployment?.access === "public";
   const nav = [
     ["overview", LayoutDashboard, "Overview"],
     ["incidents", Activity, "Issues"],
@@ -224,6 +242,12 @@ function App() {
     ["sources", Link2, "Integrations"],
   ];
   async function connectionRequest(path, body) {
+    if (publicAccess && path !== "integrations/collect") {
+      setError(
+        "Owner access is required for account connections and project settings.",
+      );
+      return;
+    }
     setBusy(true);
     setError("");
     try {
@@ -253,7 +277,12 @@ function App() {
         <button className="workspace">
           <span className="avatar">A</span>
           <span>
-            luma-goods<small>local / development</small>
+            luma-goods
+            <small>
+              {data?.deployment?.environment === "Cloud Run"
+                ? "Cloud Run / private"
+                : "Local / development"}
+            </small>
           </span>
           <ChevronDown size={14} />
         </button>
@@ -292,7 +321,10 @@ function App() {
           <div className="user">
             <span className="avatar light">YO</span>
             <span>
-              Demo operator<small>Local environment</small>
+              Demo operator
+              <small>
+                {data?.deployment?.environment || "Local"} environment
+              </small>
             </span>
             <span className="tiny-tag">DEMO</span>
           </div>
@@ -315,7 +347,7 @@ function App() {
             </strong>
           </div>
           <div className="top-actions">
-            <span className="demo-label">Local demo</span>
+            <span className="demo-label">Sample data</span>
             <button
               className="icon-button"
               aria-label="Open demo controls"
@@ -327,6 +359,12 @@ function App() {
           </div>
         </header>
         <div className="content">
+          {publicAccess && (
+            <p className="public-notice">
+              Public demo · generated data and cached Gemini analysis. Account
+              connections and project changes require owner access.
+            </p>
+          )}
           {error && (
             <div className="error" role="alert">
               {error}
@@ -362,7 +400,9 @@ function App() {
                       <label>
                         Environment
                         <select value="local" aria-label="Environment">
-                          <option value="local">Local demo</option>
+                          <option value="local">
+                            {data?.deployment?.environment || "Local"} demo
+                          </option>
                         </select>
                       </label>
                       <label>
@@ -838,8 +878,10 @@ function App() {
                     </section>
                   </div>
                   <div className="bottom-note">
-                    Local demo · persisted SQLite events · heuristic commit
-                    ranking
+                    {data?.deployment?.durable
+                      ? "Private Cloud Run · durable checkpoints"
+                      : "Local demo · SQLite state"}{" "}
+                    · heuristic commit ranking
                     <span>
                       Last refreshed{" "}
                       {new Date(data.updated_at).toLocaleTimeString()}
@@ -863,7 +905,7 @@ function App() {
                       </div>
                       <h1>{f.title}</h1>
                       <p>
-                        Measurements, candidate commits, and corrective actions
+                        Measurements, candidate commits, and review decisions
                         for this incident.
                       </p>
                     </div>
@@ -947,6 +989,13 @@ function App() {
                         )}
                         {investigation?.limitation && (
                           <p className="muted">{investigation.limitation}</p>
+                        )}
+                        {investigation?.usage?.total_tokens && (
+                          <p className="muted">
+                            {investigation.cached
+                              ? "Cached analysis"
+                              : `${investigation.usage.total_tokens.toLocaleString()} tokens used`}
+                          </p>
                         )}
                         {investigation?.recommended_verification && (
                           <p className="verification">
@@ -1079,7 +1128,7 @@ function App() {
                             <button
                               key={action}
                               className="button secondary"
-                              disabled={busy}
+                              disabled={busy || publicAccess}
                               onClick={() =>
                                 mutate(
                                   "actions",
@@ -1224,6 +1273,9 @@ function App() {
                           {x.provider} · {x.mode} data
                         </p>
                         <p>{x.recommended_verification || x.limitation}</p>
+                        {x.recommended_verification && x.limitation && (
+                          <p className="muted">{x.limitation}</p>
+                        )}
                         <div className="review-actions">
                           {[
                             ["resolve", "Mark resolved"],
@@ -1234,7 +1286,7 @@ function App() {
                             <button
                               key={action}
                               className="button secondary"
-                              disabled={busy}
+                              disabled={busy || publicAccess}
                               onClick={() =>
                                 connectionRequest("integrations/review", {
                                   finding_id: x.id,
@@ -1437,7 +1489,7 @@ function App() {
                     </div>
                     <button
                       className="button primary"
-                      disabled={busy || active}
+                      disabled={busy || (active && !publicAccess)}
                       onClick={() => launch("banking")}
                     >
                       <Play size={14} />
@@ -1471,7 +1523,7 @@ function App() {
                       <strong>{money(data.banking.exposure, 2)}</strong>
                     </div>
                     <div>
-                      <small>Corrective reversal entries</small>
+                      <small>Existing reversal entries</small>
                       <strong>{data.banking.reversals}</strong>
                     </div>
                   </section>
@@ -1581,10 +1633,9 @@ function App() {
                     <p>
                       A credit requires confirmed settlement. The detector
                       compares bank status with application status and the net
-                      ledger balance. The simulated correction records reversal
-                      entries and retains the original postings. Production use
-                      requires verified settlement data and approved accounting
-                      controls.
+                      ledger balance. Review actions retain the original
+                      postings and bank states. Production use requires verified
+                      settlement data and approved accounting controls.
                     </p>
                   </div>
                 </>
@@ -1614,7 +1665,7 @@ function App() {
                       />
                       <button
                         className="button primary"
-                        disabled={busy || !repoInput}
+                        disabled={busy || !repoInput || publicAccess}
                         onClick={async () => {
                           setBusy(true);
                           try {
@@ -1823,7 +1874,7 @@ function App() {
                     </label>
                     <button
                       className="button secondary"
-                      disabled={busy}
+                      disabled={busy || publicAccess}
                       onClick={() =>
                         connectionRequest("integrations/config", {
                           shopify_store: storeInput,
@@ -1836,9 +1887,11 @@ function App() {
                     </button>
                     <p className="muted">
                       Vertex AI:{" "}
-                      {github?.credentials?.vertex
-                        ? "Configured"
-                        : "Not configured"}
+                      {publicAccess
+                        ? "Cached demo analysis"
+                        : github?.credentials?.vertex
+                          ? "Configured"
+                          : "Not configured"}
                       . Requests use compact aggregates, a 1,200-token output
                       limit, cached results, and a local request budget.
                     </p>
@@ -1906,6 +1959,7 @@ function App() {
                                   setSourceAnalysis(
                                     await api("integrations/analyze", {
                                       source: id,
+                                      scenario: sampleScenario,
                                     }),
                                   );
                                   setGithub(await api("github"));
@@ -2071,7 +2125,7 @@ function App() {
             {scenarios.map((s) => (
               <button
                 className="scenario-option"
-                disabled={busy || active}
+                disabled={busy || (active && !publicAccess)}
                 key={s.id}
                 onClick={() => launch(s.id)}
               >

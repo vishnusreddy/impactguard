@@ -1,5 +1,7 @@
 # ImpactGuard
 
+[Public demo](https://impactguard-182850660018.us-central1.run.app/) · [Production access and cost controls](docs/production.md)
+
 ![ImpactGuard developer dashboard](output/dashboard.png)
 
 [Product document (PDF)](output/pdf/ImpactGuard-product-document.pdf) · [Connections and AI setup](docs/connections-and-ai.md)

@@ -20,11 +20,7 @@ def state(engine):
         "credentials": {
             "shopify": bool(os.getenv("IMPACTGUARD_SHOPIFY_TOKEN")),
             "analytics": bool(os.getenv("IMPACTGUARD_GA_CREDENTIALS")),
-            "vertex": bool(
-                os.getenv("IMPACTGUARD_VERTEX_PROJECT")
-                and os.getenv("IMPACTGUARD_VERTEX_CREDENTIALS")
-                and os.getenv("GEMINI_MODEL")
-            ),
+            "vertex": __import__("cloud_identity").configured(),
         },
         "policy": engine.get(
             "analysis_policy",
@@ -244,6 +240,33 @@ def analyze(engine, body):
     snapshot = engine.get("integration_snapshots", {}).get(source)
     if not snapshot:
         raise ValueError("Collect source data first")
+    import hashlib
+
+    policy = engine.get(
+        "analysis_policy", "Check business outcomes and traffic changes."
+    )
+    fingerprint = hashlib.sha256(
+        json.dumps(
+            {
+                "source": source,
+                "snapshot": snapshot,
+                "policy": policy,
+                "model": os.getenv("GEMINI_MODEL"),
+                "project": os.getenv("IMPACTGUARD_VERTEX_PROJECT"),
+            },
+            sort_keys=True,
+        ).encode()
+    ).hexdigest()
+    previous = next(
+        (
+            f
+            for f in engine.get("source_findings", [])
+            if f.get("fingerprint") == fingerprint
+        ),
+        None,
+    )
+    if previous:
+        return {**previous, "cached": True}
     rows = snapshot["rows"]
     if source == "shopify" and snapshot["mode"] == "live":
         return {
@@ -291,8 +314,16 @@ def analyze(engine, body):
         "title": "Source metric change",
         "summary": summary,
         "classification": category,
-        "baseline": b,
-        "actual": a,
+        "baseline": {
+            "mean_daily_sessions": round(b["sessions"] / len(baseline), 2),
+            "mean_daily_orders": round(b["orders"] / len(baseline), 2),
+            "completion_rate": b["completion_rate"],
+        },
+        "actual": {
+            "mean_daily_sessions": round(a["sessions"] / len(recent), 2),
+            "mean_daily_orders": round(a["orders"] / len(recent), 2),
+            "completion_rate": a["completion_rate"],
+        },
         "evidence": [
             {
                 "daily_session_ratio": round(daily_ratio, 2),
@@ -309,15 +340,13 @@ def analyze(engine, body):
     }
     from investigator import investigate
 
-    result = investigate(
-        finding,
-        engine.get("analysis_policy", "Check business outcomes and traffic changes."),
-    )
+    result = investigate(finding, policy)
     import uuid
 
     finding = {
         **result,
         "id": str(uuid.uuid4()),
+        "fingerprint": fingerprint,
         "source": source,
         "status": "active",
         "created_at": datetime.now(timezone.utc).isoformat(),

@@ -1,5 +1,4 @@
 google-genai>=1.0,<2
-google-cloud-bigquery>=3.30,<4
-google-cloud-pubsub>=2.25,<3
 google-auth>=2.0,<3
 requests>=2.31,<3
+google-cloud-storage>=3,<4
