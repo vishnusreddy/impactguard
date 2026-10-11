@@ -23,3 +23,7 @@ The target is light-use costs within the approved $5/month budget, subject to us
 The build and runtime use separate service accounts. The runtime can use Vertex AI and its private state bucket. The build identity can write container images, read build source, and write logs. Build source is allowlisted in `.gcloudignore`; credentials, local data, and `.local` configuration are excluded from uploads and Docker images. Source archives expire after seven days.
 
 References: [Cloud Run pricing](https://cloud.google.com/run/pricing), [Firebase dynamic hosting](https://firebase.google.com/docs/hosting/cloud-run), [private service authentication](https://docs.cloud.google.com/run/docs/authenticating/developers).
+
+## LLM detection release
+
+Revision `impactguard-00006-cmk` serves the LLM-first pipeline. Public fixtures contain cached Gemini anomaly decisions, validated commit/file/new-line references, and unapplied fix/test drafts. The current banking fixture has five account review flags; these are not fraud determinations or blocks. Public mutation requests were verified as HTTP 403. The 25-case synthetic development evaluation and six detector controls are tracked in `output/evaluation/`; no production accuracy is claimed.
