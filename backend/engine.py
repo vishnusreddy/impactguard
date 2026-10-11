@@ -1,4 +1,4 @@
-"""Deterministic business detection over persisted synthetic customer events."""
+"""Persisted business measurements with explicit Gemini anomaly decisions."""
 
 from messages import format_finding
 import json, math, os, random, sqlite3, threading, uuid
@@ -27,6 +27,13 @@ class Engine:
         CREATE TABLE IF NOT EXISTS findings(id TEXT PRIMARY KEY,payload TEXT);
         CREATE TABLE IF NOT EXISTS deployments(id TEXT PRIMARY KEY,timestamp TEXT,version TEXT,components TEXT);"""
         )
+        if "account_id" not in [
+            r[1] for r in self.db.execute("PRAGMA table_info(bank_transactions)")
+        ]:
+            self.db.execute("ALTER TABLE bank_transactions ADD COLUMN account_id TEXT")
+            self.db.execute(
+                "UPDATE bank_transactions SET account_id='legacy-unattributed' WHERE account_id IS NULL"
+            )
         if "amount_cents" not in [
             r[1] for r in self.db.execute("PRAGMA table_info(bank_transactions)")
         ]:
@@ -152,62 +159,103 @@ class Engine:
         ).fetchone()
         return dict(row)
 
-    def launch(self, scenario):
+    def launch(self, scenario, assess=True):
         if scenario not in ["checkout", "promotion", "delivery", "banking"]:
             raise ValueError("Unknown scenario")
         with LOCK:
-            if self.get("status") == "active":
+            if self.get("status") in ("active", "unassessed"):
                 raise ValueError(
                     "Resolve the current scenario or reset before launching another"
                 )
-            self.db.execute("DELETE FROM events WHERE phase IN ('live','recovery')")
-            current = datetime.now(timezone.utc)
-            self.generate("live", 6000, current - timedelta(hours=1), 1, scenario)
-            if scenario == "banking":
-                self.generate_bank()
-            version = {
-                "checkout": "checkout-v42",
-                "promotion": "campaign-stack-v3",
-                "delivery": "delivery-routing-v18",
-                "banking": "payments-adapter-v12",
-            }[scenario]
-            self.db.execute(
-                "INSERT OR REPLACE INTO deployments VALUES (?,?,?,?)",
-                (
-                    str(uuid.uuid4()),
-                    (current - timedelta(minutes=67)).isoformat(),
-                    version,
-                    json.dumps(
-                        {
-                            "checkout": ["paypal_redirect", "payment_retry"],
-                            "promotion": ["discount_combiner"],
-                            "delivery": ["carrier_routing"],
-                            "banking": ["settlement_status_mapper"],
-                        }[scenario]
+            self.db.execute("SAVEPOINT assessment")
+            try:
+                self.db.execute("DELETE FROM events WHERE phase IN ('live','recovery')")
+                current = datetime.now(timezone.utc)
+                self.generate("live", 6000, current - timedelta(hours=1), 1, scenario)
+                if scenario == "banking":
+                    self.generate_bank()
+                version = {
+                    "checkout": "checkout-v42",
+                    "promotion": "campaign-stack-v3",
+                    "delivery": "delivery-routing-v18",
+                    "banking": "payments-adapter-v12",
+                }[scenario]
+                self.db.execute(
+                    "INSERT OR REPLACE INTO deployments VALUES (?,?,?,?)",
+                    (
+                        str(uuid.uuid4()),
+                        (current - timedelta(minutes=67)).isoformat(),
+                        version,
+                        json.dumps(
+                            {
+                                "checkout": ["paypal_redirect", "payment_retry"],
+                                "promotion": ["discount_combiner"],
+                                "delivery": ["carrier_routing"],
+                                "banking": ["settlement_status_mapper"],
+                            }[scenario]
+                        ),
                     ),
-                ),
-            )
-            self.set("scenario", scenario)
-            self.set("status", "active")
-            self.set("started", now())
-            finding = self.detect(scenario)
-            self.db.execute(
-                "INSERT OR REPLACE INTO findings VALUES (?,?)",
-                (finding["id"], json.dumps(finding)),
-            )
-            self.set("current", finding["id"])
-            self.audit(
-                "Change introduced",
-                f"{version}: simulated regression injected into customer events.",
-            )
-            self.audit(
-                "Regression detected",
-                f"{finding['title']}. Deterministic detector evaluated {finding['sample_size']:,} sessions.",
-            )
+                )
+                self.set("scenario", scenario)
+                self.set("status", "active")
+                self.set("started", now())
+                finding = self.observe(scenario)
+                if assess:
+                    from investigator import detect_anomaly
+
+                    decision = detect_anomaly(
+                        finding,
+                        self.get(
+                            "analysis_policy",
+                            "Check business outcomes, accounting consistency, traffic and data quality.",
+                        ),
+                    )
+                    finding.update(
+                        detection=decision,
+                        detection_provider=decision["provider"],
+                        reasoning_provider=decision["provider"],
+                        classification=decision["classification"],
+                        summary=decision["summary"],
+                        status=(
+                            "active"
+                            if decision["detected"] is True
+                            else (
+                                "healthy"
+                                if decision["detected"] is False
+                                else "unassessed"
+                            )
+                        ),
+                    )
+                else:
+                    finding.update(
+                        status="unassessed",
+                        classification="inconclusive",
+                        detection_provider="Awaiting cached Gemini decision",
+                    )
+                self.set("status", finding["status"])
+                self.db.execute(
+                    "INSERT OR REPLACE INTO findings VALUES (?,?)",
+                    (finding["id"], json.dumps(finding)),
+                )
+                self.set("current", finding["id"])
+                self.audit(
+                    "Change introduced",
+                    f"{version}: simulated regression injected into customer events.",
+                )
+                self.audit(
+                    "Anomaly window assessed",
+                    finding["detection_provider"] + ": " + finding["classification"],
+                )
+                self.db.execute("RELEASE assessment")
+            except Exception:
+                self.db.execute("ROLLBACK TO assessment")
+                self.db.execute("RELEASE assessment")
+                raise
             self.db.commit()
         return self.dashboard()
 
-    def detect(self, scenario):
+    def observe(self, scenario):
+        """Collect measurements and scenario metadata, without an anomaly verdict."""
         b = self.stats("baseline")
         a = self.stats("live")
         n = a["n"]
@@ -221,7 +269,7 @@ class Engine:
             "status": "active",
             "created_at": now(),
             "sample_size": n,
-            "reasoning_provider": "Evidence rules",
+            "reasoning_provider": "Awaiting Gemini",
             "confidence_label": "Correlation score, not causal probability",
             "owner": "Unassigned",
             "notes": [],
@@ -230,10 +278,6 @@ class Engine:
             "z_score": round(z, 2),
         }
         if scenario == "checkout":
-            if z < 5 or delta < 0.02:
-                raise ValueError(
-                    "Checkout regression does not meet detection thresholds"
-                )
             seller_checkout_starts_per_day = 120
             exposure = max(0, delta) * seller_checkout_starts_per_day * 82
             segments = []
@@ -294,8 +338,6 @@ class Engine:
             leaks = self.db.execute(
                 "SELECT COUNT(*) n,SUM(-margin) loss FROM events WHERE phase='live' AND margin<0"
             ).fetchone()
-            if leaks["n"] < 20 or (leaks["loss"] or 0) <= 0:
-                raise ValueError("Insufficient negative-margin evidence")
             exposure = (leaks["loss"] or 0) / n * 120 * 7
             base.update(
                 title="Stacked discounts erase order margin",
@@ -340,8 +382,6 @@ class Engine:
                 ).fetchone()
                 cohorts.append(dict(row))
             delta = cohorts[0]["rate"] - cohorts[1]["rate"]
-            if min(c["n"] for c in cohorts) < 100 or delta < 0.1:
-                raise ValueError("Insufficient retention cohort evidence")
             monthly_delayed_customers = (
                 120 * b["conversion"] * 30 * (cohorts[1]["n"] / n)
             )
@@ -382,8 +422,6 @@ class Engine:
             mismatch = self.db.execute(
                 "SELECT COUNT(*) n,SUM(amount_cents) exposure FROM bank_transactions WHERE bank_status!='settled' AND app_status='success'"
             ).fetchone()
-            if not mismatch["n"]:
-                raise ValueError("No unsettled credit mismatch detected")
             base.update(
                 title="Failed payments posted as settled credits",
                 severity="critical",
@@ -430,9 +468,30 @@ class Engine:
             }
             for c in DEMO_COMMITS
         ]
-        base["commits"] = rank_commits(commits, scenario, onset.isoformat())
-        base["score"] = base["commits"][0]["score"]
-        base["commit_sha"] = base["commits"][0]["sha"]
+        base["heuristic_commits"] = rank_commits(commits, scenario, onset.isoformat())
+        base["commits"] = [
+            {**c, "deployment_eligible": True}
+            for c in sorted(commits, key=lambda x: x["sha"])
+        ]
+        base["score"] = 0
+        base["commit_sha"] = "Awaiting AI"
+        base["deployment_mapping"] = {
+            "kind": "synthetic fixture",
+            "release_window": onset.isoformat(),
+            "candidate_shas": [c["sha"] for c in commits],
+        }
+        base["observations"] = [
+            {
+                "id": "e" + str(i + 1),
+                "label": e["label"],
+                "value": e["value"],
+                "detail": e["detail"],
+            }
+            for i, e in enumerate(base["evidence"])
+        ]
+        if scenario == "banking":
+            base["observations"] = base["observations"][:2]
+            base["bank_accounts"] = self.bank_accounts()
         base["timeline"] = [
             {
                 "time": (onset - timedelta(minutes=7)).strftime("%H:%M"),
@@ -446,22 +505,27 @@ class Engine:
             },
             {
                 "time": (onset + timedelta(minutes=2)).strftime("%H:%M"),
-                "title": "Metric crossed threshold",
+                "title": "Measurement window collected",
                 "detail": base["metric"],
             },
             {
                 "time": (onset + timedelta(minutes=5)).strftime("%H:%M"),
                 "title": "Investigation ready",
-                "detail": "Evidence correlated and dollar exposure calculated",
+                "detail": "Measurements and candidate diffs available for Gemini",
             },
         ]
-        base["classification"] = (
-            "operational_incident" if scenario == "delivery" else "business_regression"
-        )
+        base["classification"] = "inconclusive"
         base["classification_basis"] = (
-            "Synthetic release and metric evidence. Candidate cause; not confirmed causation."
+            "Gemini assesses the supplied window; numerical measurements do not determine the verdict."
         )
-        return format_finding(base)
+        base.pop("action", None)
+        base["title"] = {
+            "checkout": "Checkout completion",
+            "promotion": "Order contribution margin",
+            "delivery": "Customer repurchase",
+            "banking": "Settlement consistency",
+        }[scenario]
+        return base
 
     def finding(self, finding_id=None):
         with LOCK:
@@ -600,13 +664,73 @@ class Engine:
                 "success"  # injected mapper bug: all callbacks treated as successful
             )
             self.db.execute(
-                "INSERT INTO bank_transactions VALUES (?,?,?,?,?)",
-                (txid, now(), status, app_status, amount),
+                "INSERT INTO bank_transactions VALUES (?,?,?,?,?,?)",
+                (
+                    txid,
+                    now(),
+                    status,
+                    app_status,
+                    amount,
+                    (
+                        f"acct_sim_{(i//10)%5:03d}"
+                        if i % 10 == 0
+                        else f"acct_sim_{100+i%400:03d}"
+                    ),
+                ),
             )
             self.db.execute(
                 "INSERT INTO ledger VALUES (?,?,?,?,?)",
                 (str(uuid.uuid4()), txid, amount, "credit", now()),
             )
+
+    def bank_accounts(self):
+        grouped = {}
+        for row in self.reconciliation_rows():
+            account = row.get("account_id") or "legacy-unattributed"
+            item = grouped.setdefault(
+                account,
+                {
+                    "account_id": account,
+                    "mismatch_count": 0,
+                    "failed_count": 0,
+                    "pending_count": 0,
+                    "unbacked_cents": 0,
+                    "transaction_ids": [],
+                },
+            )
+            item["mismatch_count"] += 1
+            item["failed_count"] += int(row["bank_status"] == "failed")
+            item["pending_count"] += int(row["bank_status"] == "pending")
+            item["unbacked_cents"] += max(
+                0, row["net_credit_cents"] - row["expected_credit_cents"]
+            )
+            if len(item["transaction_ids"]) < 6:
+                item["transaction_ids"].append(row["id"])
+        return sorted(
+            grouped.values(), key=lambda x: (-x["mismatch_count"], x["account_id"])
+        )[:20]
+
+    def investigate_finding(self, finding_id=None):
+        from investigator import investigate
+
+        f = self.finding(finding_id)
+        if not f:
+            raise ValueError("Collect a window first")
+        result = investigate(
+            f,
+            self.get(
+                "analysis_policy",
+                "Compare business evidence against all supplied candidate diffs.",
+            ),
+        )
+        f["investigation"] = result
+        if result.get("attribution_status") == "validated_reference":
+            f["commit_sha"] = result["suspect_commit_sha"]
+        self.db.execute(
+            "UPDATE findings SET payload=? WHERE id=?", (json.dumps(f), f["id"])
+        )
+        self.db.commit()
+        return result
 
     def reconciliation_rows(self):
         rows = self.db.execute(
@@ -657,6 +781,10 @@ class Engine:
             "transactions": [
                 {**r, "amount": r["amount_cents"] / 100} for r in examples
             ],
+            "accounts": self.bank_accounts(),
+            "account_reviews": (self.finding() or {})
+            .get("detection", {})
+            .get("accounts_review", []),
             "reversals": self.db.execute(
                 "SELECT COUNT(*) FROM ledger WHERE kind='reversal'"
             ).fetchone()[0],

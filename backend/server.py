@@ -43,6 +43,10 @@ class Handler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         if path == "/api/health":
             return self.respond({"ok": True, "mode": "synthetic-demo"})
+        if path == "/api/evaluation":
+            return self.respond(
+                json.loads((ROOT / "backend" / "evaluation_summary.json").read_text())
+            )
         operator = owner(self.headers)
         if (
             public_preview()
@@ -56,7 +60,7 @@ class Handler(BaseHTTPRequestHandler):
             try:
                 with LOCK:
                     if path == "/api/dashboard":
-                        return self.respond(dashboard(case))
+                        return self.respond(dashboard(case, engine))
                     if path == "/api/github":
                         return self.respond(connections())
                     if path == "/api/export":
@@ -234,13 +238,7 @@ class Handler(BaseHTTPRequestHandler):
                 f = engine.finding(body.get("finding_id"))
                 if not f:
                     raise ValueError("Launch a scenario first")
-                result = investigate(
-                    f,
-                    engine.get(
-                        "analysis_policy",
-                        "Check business outcomes, traffic changes, and data quality.",
-                    ),
-                )
+                result = engine.investigate_finding(body.get("finding_id"))
             else:
                 return self.respond({"error": "Not found"}, 404)
             if store and engine.db.total_changes != before_changes:

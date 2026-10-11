@@ -1,0 +1,1797 @@
+[
+  {
+    "id": "bug-01",
+    "ground_truth": {
+      "sha": "3d56ec1c123df01b1ad59f9d131bb1e0bf34f57a",
+      "file": "src/banking/module_f21e6e.py",
+      "line": 83
+    },
+    "heuristic_sha": "9120f82a611bf368b82094617fa51432c65b9139",
+    "detection": {
+      "detected": true,
+      "classification": "data_quality",
+      "summary": "Data quality issue observed where failed transactions are incorrectly marked as settlement eligible.",
+      "reason": "Observation e1 shows that failed status inputs resulted in an observed outcome of true for settlement eligibility, whereas the expected outcome was false.",
+      "evidence_refs": [
+        "e1"
+      ],
+      "accounts_review": [],
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 1335,
+      "max_output_tokens": 1000,
+      "usage": {
+        "input_tokens": 752,
+        "output_tokens": 97,
+        "total_tokens": 849
+      }
+    },
+    "result": {
+      "suspect_commit_sha": "3d56ec1c123df01b1ad59f9d131bb1e0bf34f57a",
+      "file": "src/banking/module_f21e6e.py",
+      "line": 83,
+      "defect_explanation": "The commit changes settlement eligibility from requiring status == 'settled' to requiring status != 'cancelled'. For an input status of 'failed', the old code evaluated to false, whereas the new code evaluates to true, matching the observed failure where failed statuses incorrectly become eligible for settlement.",
+      "summary": "Commit 3d56ec1c123df01b1ad59f9d131bb1e0bf34f57a introduced a defect by changing the settlement eligibility check to allow any status other than 'cancelled', causing failed statuses to be incorrectly eligible.",
+      "recommended_verification": "Verify settlement eligibility logic against all status values, specifically ensuring failed and other non-settled statuses return false.",
+      "ruled_out_commits": [
+        {
+          "sha": "9120f82a611bf368b82094617fa51432c65b9139",
+          "reason": "Only adds a comment and does not alter the evaluation logic for settlement eligibility."
+        },
+        {
+          "sha": "976eef6445c34dcf38ef5a0f0e89f4bc96213d74",
+          "reason": "Only modifies cache TTL and is unrelated to settlement eligibility."
+        },
+        {
+          "sha": "cdea142818573466fe13b0c500448998c2c2cd29",
+          "reason": "Only adds string stripping for labels and does not affect settlement evaluation."
+        },
+        {
+          "sha": "f992b2a856d0b58b87da7a0209df3ce031fe9881",
+          "reason": "Only adds parentheses around the exact same equivalence check without altering logic."
+        }
+      ],
+      "suggested_fix_diff": "",
+      "guard_test_diff": "",
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 3955,
+      "max_output_tokens": 2600,
+      "usage": {
+        "input_tokens": 1612,
+        "output_tokens": 618,
+        "total_tokens": 2230
+      },
+      "attribution_status": "validated_reference",
+      "draft_warnings": [
+        "suggested_fix_diff: invalid unified diff; omitted",
+        "guard_test_diff: invalid unified diff; omitted"
+      ],
+      "draft_status": "Suggested only; not applied or executed"
+    },
+    "llm_top1": true,
+    "exact_reference": true,
+    "heuristic_top1": false,
+    "seconds": 4.85
+  },
+  {
+    "id": "bug-02",
+    "ground_truth": {
+      "sha": "10e7d16d8240e9b6f5c2f820a04173666111a769",
+      "file": "src/banking/module_c8bd11.py",
+      "line": 140
+    },
+    "heuristic_sha": "05a48c545d93631f8b2da5988c55bec227f73940",
+    "detection": {
+      "detected": false,
+      "classification": "healthy",
+      "summary": "Pending settlement observations are within expected parameters.",
+      "reason": "The observed outcome for pending settlements aligns with normal processing states across the sampled size of 1200.",
+      "evidence_refs": [
+        "e1"
+      ],
+      "accounts_review": [],
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 1332,
+      "max_output_tokens": 1000,
+      "usage": {
+        "input_tokens": 757,
+        "output_tokens": 85,
+        "total_tokens": 842
+      }
+    },
+    "result": {
+      "suspect_commit_sha": "10e7d16d8240e9b6f5c2f820a04173666111a769",
+      "file": "src/banking/module_c8bd11.py",
+      "line": 140,
+      "defect_explanation": "Commit 10e7d16d8240e9b6f5c2f820a04173666111a769 changes the evaluation logic for status from strictly checking for settled status to also returning true for pending status. This causes items with pending status to be treated as settled/processed, directly leading to the observed outcome where pending settlements are incorrectly reported.",
+      "summary": "Commit 10e7d16d8240e9b6f5c2f820a04173666111a769 introduced a change that incorrectly evaluates pending statuses as valid settlements.",
+      "recommended_verification": "Run unit tests verifying that pending status returns false during status evaluation.",
+      "ruled_out_commits": [
+        {
+          "sha": "05a48c545d93631f8b2da5988c55bec227f73940",
+          "reason": "Only adds a comment and returns the event without changing evaluation logic for pending status."
+        },
+        {
+          "sha": "0e24ccba755946ed608d9d01dd989a252677b40f",
+          "reason": "Merely adds parentheses around the exact same boolean condition without altering behavior."
+        },
+        {
+          "sha": "59ec8f53736353e1cd658655b212d7fd3e0a8116",
+          "reason": "Only modifies cache TTL return values and does not touch settlement status evaluation."
+        },
+        {
+          "sha": "f366237e1724aa0296b3e3b0d536c536abdfd456",
+          "reason": "Only modifies cache TTL return values and does not touch settlement status evaluation."
+        }
+      ],
+      "suggested_fix_diff": "--- src/banking/module_c8bd11.py\n+++ src/banking/module_c8bd11.py\n@@ -140,1 +140,1 g\n-    return status in (\"settled\", \"pending\")\n+    return status == \"settled\"",
+      "guard_test_diff": "--- tests/test_banking.py\n+++ tests/test_banking.py\n@@ -10,1 +10,1 @@\n-    assert evaluate(\"pending\") is False\n+    assert evaluate(\"pending\") is False",
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 3945,
+      "max_output_tokens": 2600,
+      "usage": {
+        "input_tokens": 1635,
+        "output_tokens": 706,
+        "total_tokens": 2341
+      },
+      "attribution_status": "validated_reference",
+      "draft_status": "Suggested only; not applied or executed"
+    },
+    "llm_top1": true,
+    "exact_reference": true,
+    "heuristic_top1": false,
+    "seconds": 4.92
+  },
+  {
+    "id": "bug-03",
+    "ground_truth": {
+      "sha": "30817d8e463635c5b6f0277dec96979773ccb395",
+      "file": "src/banking/module_4b4685.py",
+      "line": 80
+    },
+    "heuristic_sha": "06bb7869730d38f3f6fe601933eaec2b7a85f809",
+    "detection": {
+      "detected": true,
+      "classification": "business_regression",
+      "summary": "Reversal sign inversion detected in transaction processing",
+      "reason": "Observation e1 indicates that the observed outcome for the reversal sign metric is positive (8300) when the expected outcome was negative (-8300), pointing to a sign inversion bug in the release bundle.",
+      "evidence_refs": [
+        "e1"
+      ],
+      "accounts_review": [],
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 1322,
+      "max_output_tokens": 1000,
+      "usage": {
+        "input_tokens": 758,
+        "output_tokens": 104,
+        "total_tokens": 862
+      }
+    },
+    "result": {
+      "suspect_commit_sha": "30817d8e463635c5b6f0277dec96979773ccb395",
+      "file": "src/banking/module_4b4685.py",
+      "line": 80,
+      "defect_explanation": "The commit changed evaluate(amount) to return abs(amount) instead of -abs(amount), which inverts the negative sign of the expected outcome (-8300) to a positive observed outcome (8300).",
+      "summary": "Commit 30817d8e463635c5b6f0277dec96979773ccb395 caused a sign reversal by returning a positive absolute value instead of a negative absolute value.",
+      "recommended_verification": "Run unit tests for evaluate(amount) to ensure negative amounts are correctly returned as negative values.",
+      "ruled_out_commits": [
+        {
+          "sha": "06bb7869730d38f3f6fe601933eaec2b7a85f809",
+          "reason": "Only added a comment and returned the event unmodified, which does not affect numeric sign evaluation."
+        },
+        {
+          "sha": "3bf892ff3b8c3377b4a103010459e71d1c10cad1",
+          "reason": "Only modified cache TTL return value."
+        },
+        {
+          "sha": "60cfdd9f8d1fd4ff500c5f85be9cb2ae1d498951",
+          "reason": "Only modified cache TTL return value."
+        },
+        {
+          "sha": "a6f2e630f4de543eec191038ecb6d1692fede714",
+          "reason": "Maintains the negative absolute value behavior (-abs(amount)), which does not cause the observed sign reversal."
+        }
+      ],
+      "suggested_fix_diff": "--- src/banking/module_4b4685.py\n+++ src/banking/module_4b4685.py\n@@ -80,1 +80,15 @@\n-    return abs(amount)\n+    return -abs(amount)",
+      "guard_test_diff": "--- tests/test_module_4b4685.py\n+++ tests/test_module_4b4685.py\n@@ -1,3 +1,3 @@\n def test_evaluate():\n-    assert evaluate(8300) == -8300\n+    assert evaluate(8300) == -8300",
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 3841,
+      "max_output_tokens": 2600,
+      "usage": {
+        "input_tokens": 1604,
+        "output_tokens": 684,
+        "total_tokens": 2288
+      },
+      "attribution_status": "validated_reference",
+      "draft_status": "Suggested only; not applied or executed"
+    },
+    "llm_top1": true,
+    "exact_reference": true,
+    "heuristic_top1": false,
+    "seconds": 4.84
+  },
+  {
+    "id": "bug-04",
+    "ground_truth": {
+      "sha": "1a67169e583f5d6ec5e5091503c258cdf71c7874",
+      "file": "src/banking/module_35d21a.py",
+      "line": 128
+    },
+    "heuristic_sha": "2e9c6b25197dd6d2c4b41e4471da056ae9083fea",
+    "detection": {
+      "detected": true,
+      "classification": "operational_incident",
+      "summary": "High incidence of unexpected outcomes observed in retry idempotency check.",
+      "reason": "Observation e1 shows 8300 observed outcomes against an expected outcome of 0 for seen inputs, indicating an issue with retry idempotency handling.",
+      "evidence_refs": [
+        "e1"
+      ],
+      "accounts_review": [],
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 1320,
+      "max_output_tokens": 1000,
+      "usage": {
+        "input_tokens": 754,
+        "output_tokens": 100,
+        "total_tokens": 854
+      }
+    },
+    "result": {
+      "suspect_commit_sha": "1a67169e583f5d6ec5e5091503c258cdf71c7874",
+      "file": "src/banking/module_35d21a.py",
+      "line": 128,
+      "defect_explanation": "Commit 1a67169e583f5d6ec5e5091503c258cdf71c7874 changes the evaluate function to unconditionally return 8300 regardless of the seen parameter. This causes seen=true inputs, which previously expected 0, to return 8300, matching the observed failure outcome of 8300.",
+      "summary": "Commit 1a67169e583f5d6ec5e5091503c258cdf71c7874 introduced a regression by unconditionally returning 8300 in evaluate(seen).",
+      "recommended_verification": "Run the banking module test suite focusing on evaluate(seen) with seen=true and seen=false inputs.",
+      "ruled_out_commits": [
+        {
+          "sha": "1ad335e88556407fd0215510486395dd18754fbf",
+          "reason": "Only adds parentheses around the conditional return, preserving original behavior."
+        },
+        {
+          "sha": "2e9c6b25197dd6d2c4b41e4471da056ae9083fea",
+          "reason": "Only adds a comment in record_metric, which does not affect the evaluated return values."
+        },
+        {
+          "sha": "8a2f585567998f59bd063b064f6bfe55df48e00f",
+          "reason": "Only modifies cache TTL from 60 to 120, unrelated to retry idempotency evaluation."
+        },
+        {
+          "sha": "bd5c58e08efac1deb03b8e25e75216f503d5f59c",
+          "reason": "Only adds string stripping in label function, unrelated to the observed metric."
+        }
+      ],
+      "suggested_fix_diff": "--- src/banking/module_35d21a.py\n+++ src/banking/module_35d21a.py\n@@ -127,2 +127,2 @@\n def evaluate(seen):\n-    return 8300\n+    return 0 if seen else 8300",
+      "guard_test_diff": "--- /dev/null\n+++ src/banking/test_module_35d21a.py\n@@ -0,0 +1,4 @@\n+from banking.module_35d21a import evaluate\n+\n+def test_evaluate_seen():\n+    assert evaluate(True) == 0\n",
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 3890,
+      "max_output_tokens": 2600,
+      "usage": {
+        "input_tokens": 1636,
+        "output_tokens": 750,
+        "total_tokens": 2386
+      },
+      "attribution_status": "validated_reference",
+      "draft_status": "Suggested only; not applied or executed"
+    },
+    "llm_top1": true,
+    "exact_reference": true,
+    "heuristic_top1": false,
+    "seconds": 4.87
+  },
+  {
+    "id": "bug-05",
+    "ground_truth": {
+      "sha": "0fdf5496b9a926f785f16e70dd9cda91ea12b47d",
+      "file": "src/banking/module_67ab72.py",
+      "line": 120
+    },
+    "heuristic_sha": "f0de4acb95423313782461037cdac0a199ed4549",
+    "detection": {
+      "detected": true,
+      "classification": "operational_incident",
+      "summary": "High volume of duplicate callbacks observed.",
+      "reason": "Observation e1 indicates 8300 duplicate callbacks against an expected outcome of 0 with a sample size of 1200.",
+      "evidence_refs": [
+        "e1"
+      ],
+      "accounts_review": [],
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 1320,
+      "max_output_tokens": 1000,
+      "usage": {
+        "input_tokens": 753,
+        "output_tokens": 93,
+        "total_tokens": 846
+      }
+    },
+    "result": {
+      "suspect_commit_sha": "0fdf5496b9a926f785f16e70dd9cda91ea12b47d",
+      "file": "src/banking/module_67ab72.py",
+      "line": 120,
+      "defect_explanation": "Commit 0fdf5496b9a926f785f16e70dd9cda91ea12b47d changes evaluate(count) to unconditionally return 8300 regardless of the count input. With an input condition of count=2, the function now returns 8300 instead of 0, directly matching the observed outcome of 8300 duplicate callbacks.",
+      "summary": "The evaluate function was modified to return an unconditional 8300, causing duplicate callbacks for inputs where count is not 1.",
+      "recommended_verification": "Run unit tests for evaluate with varying count parameters to verify conditional execution.",
+      "ruled_out_commits": [
+        {
+          "sha": "3b21c81ab1b1a516f4a374242ae78c14c93e086b",
+          "reason": "Changes cache TTL which is unrelated to duplicate callback metric observations."
+        },
+        {
+          "sha": "72064d7a355618b967eda9e79345940d1ec5489b",
+          "reason": "Preserves existing conditional logic with added parentheses, resulting in identical behavior."
+        },
+        {
+          "sha": "dc7988c47ab68cb9fd16322c80f83cb7d60f2fb7",
+          "reason": "Modifies string labeling behavior which does not affect duplicate callbacks."
+        },
+        {
+          "sha": "f0de4acb95423313782461037cdac0a199ed4549",
+          "reason": "Only adds a comment inside record_metric and preserves return value."
+        }
+      ],
+      "suggested_fix_diff": "--- a/src/banking/module_67ab72.py\n+++ b/src/banking/module_67ab72.py\n@@ -120,1 +120,1 @@\n-    return 8300\n+    return 8300 if count == 1 else 0",
+      "guard_test_diff": "--- /dev/null\n+++ b/tests/test_module_67ab72.py\n@@ -0,0 +1,3 @@\n+def test_evaluate_count():\n+    assert evaluate(1) == 8300\n+    assert evaluate(2) == 0",
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 3922,
+      "max_output_tokens": 2600,
+      "usage": {
+        "input_tokens": 1650,
+        "output_tokens": 695,
+        "total_tokens": 2345
+      },
+      "attribution_status": "validated_reference",
+      "draft_status": "Suggested only; not applied or executed"
+    },
+    "llm_top1": true,
+    "exact_reference": true,
+    "heuristic_top1": false,
+    "seconds": 5.09
+  },
+  {
+    "id": "bug-06",
+    "ground_truth": {
+      "sha": "07d6bb5c02a215f4aeb8a895e7162a68a9c3245a",
+      "file": "src/banking/module_9701c4.py",
+      "line": 174
+    },
+    "heuristic_sha": "9c9c72883b28545a6f2a43c06c8e33ecc62b22ed",
+    "detection": {
+      "detected": true,
+      "classification": "data_quality",
+      "summary": "Observed outcome significantly exceeds the expected outcome within observation e1.",
+      "reason": "Observation e1 shows an observed outcome of 82000 compared to an expected outcome of 8200 for a sample size of 1200, indicating a tenfold discrepancy that points to data quality or instrumentation anomalies.",
+      "evidence_refs": [
+        "e1"
+      ],
+      "accounts_review": [],
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 1327,
+      "max_output_tokens": 1000,
+      "usage": {
+        "input_tokens": 759,
+        "output_tokens": 119,
+        "total_tokens": 878
+      }
+    },
+    "result": {
+      "suspect_commit_sha": "07d6bb5c02a215f4aeb8a895e7162a68a9c3245a",
+      "file": "src/banking/module_9701c4.py",
+      "line": 174,
+      "defect_explanation": "The evaluate function was changed to multiply the amount by 1000 instead of 100, causing an expected output of 8200 to become 82000 for an input amount of 82.",
+      "summary": "Commit 07d6bb5c02a215f4aeb8a895e7162a68a9c3245a introduced a multiplication factor change from 100 to 1000 in evaluate() which explains the observation.",
+      "recommended_verification": "Run unit tests for src/banking/module_9701c4.py with input 82 to verify output equals 8200.",
+      "ruled_out_commits": [
+        {
+          "sha": "203fd347b8ccfb6db72414ac89dfd84bdcb02f16",
+          "reason": "Changes cache TTL, which does not affect the evaluation calculation."
+        },
+        {
+          "sha": "465411ee51a25c4f64619d8c0ea67fa557172481",
+          "reason": "Changes cache TTL, which does not affect the evaluation calculation."
+        },
+        {
+          "sha": "55e615ef67f8bd2e59aa40fe29784e03c45b479c",
+          "reason": "Only adds parentheses around the return value without changing the scaling factor."
+        },
+        {
+          "sha": "9c9c72883b28545a6f2a43c06c8e33ecc62b22ed",
+          "reason": "Only adds a comment, does not alter the calculation logic."
+        }
+      ],
+      "suggested_fix_diff": "--- a/src/banking/module_9701c4.py\n+++ b/src/banking/module_9701c4.py\n@@ -174,2 +174,2 @@\n def evaluate(amount):\n-    return round(amount * 1000)\n+    return round(amount * 100)",
+      "guard_test_diff": "--- /dev/null\n+++ b/tests/test_module_9701c4.py\n@@ -0,0 +1,3 @@\n+def test_evaluate():\n+    assert evaluate(82) == 8200\n",
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 3901,
+      "max_output_tokens": 2600,
+      "usage": {
+        "input_tokens": 1647,
+        "output_tokens": 702,
+        "total_tokens": 2349
+      },
+      "attribution_status": "validated_reference",
+      "draft_status": "Suggested only; not applied or executed"
+    },
+    "llm_top1": true,
+    "exact_reference": true,
+    "heuristic_top1": false,
+    "seconds": 4.24
+  },
+  {
+    "id": "bug-07",
+    "ground_truth": {
+      "sha": "8ecc0779bd80a10d28a4d18107e10d8fca27152e",
+      "file": "src/banking/module_dc316e.py",
+      "line": 82
+    },
+    "heuristic_sha": "d9cd4e4c5b0084a90d6a2763fd7e4605b1264a07",
+    "detection": {
+      "detected": false,
+      "classification": "healthy",
+      "summary": "Net settlement outcome is slightly above expected levels within normal operational variance.",
+      "reason": "Observed outcome (8500) exceeds expected outcome (8100) based on a sufficient sample size (1200), indicating healthy business performance without regression or anomalies.",
+      "evidence_refs": [
+        "e1"
+      ],
+      "accounts_review": [],
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 1321,
+      "max_output_tokens": 1000,
+      "usage": {
+        "input_tokens": 763,
+        "output_tokens": 107,
+        "total_tokens": 870
+      }
+    },
+    "result": {
+      "suspect_commit_sha": "8ecc0779bd80a10d28a4d18107e10d8fca27152e",
+      "file": "src/banking/module_dc316e.py",
+      "line": 82,
+      "defect_explanation": "Commit 8ecc0779bd80a10d28a4d18107e10d8fca27152e changed the evaluate function to add 200 instead of subtracting 200 from the gross input of 8300, resulting in 8500 which matches the observed outcome.",
+      "summary": "Incorrect arithmetic operator in evaluate function causes net settlement calculation error.",
+      "recommended_verification": "Run unit tests for src/banking/module_dc316e.py to verify evaluation output.",
+      "ruled_out_commits": [
+        {
+          "sha": "139e53a0d8bb4a2dfec36d13bf988022e1630fe8",
+          "reason": "Changes label string formatting, unrelated to net settlement numeric outcomes."
+        },
+        {
+          "sha": "2337d9e5df8e4c6f5c59a426d0a000c23701f55b",
+          "reason": "Modifies cache TTL value, does not affect settlement evaluation logic."
+        },
+        {
+          "sha": "c24499bbd8ade449a8d2302d56d40a1ca457663a",
+          "reason": "Only adds parentheses around the subtraction expression, preserving correctness."
+        },
+        {
+          "sha": "d9cd4e4c5b0084a90d6a2763fd7e4605b1264a07",
+          "reason": "Only adds a comment inside record_metric, does not alter execution logic."
+        }
+      ],
+      "suggested_fix_diff": "--- a/src/banking/module_dc316e.py\n+++ b/src/banking/module_dc316e.py\n@@ -82,2 +82,2 @@\n def evaluate(gross):\n-    return gross + 200\n+    return gross - 200",
+      "guard_test_diff": "--- /dev/null\n+++ b/tests/test_module_dc316e.py\n@@ -0,0 +1,4 @@\n+from banking.module_dc316e import evaluate\n+\n+def test_evaluate():\n+    assert evaluate(8300) == 8100",
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 3868,
+      "max_output_tokens": 2600,
+      "usage": {
+        "input_tokens": 1626,
+        "output_tokens": 680,
+        "total_tokens": 2306
+      },
+      "attribution_status": "validated_reference",
+      "draft_status": "Suggested only; not applied or executed"
+    },
+    "llm_top1": true,
+    "exact_reference": true,
+    "heuristic_top1": false,
+    "seconds": 4.44
+  },
+  {
+    "id": "bug-08",
+    "ground_truth": {
+      "sha": "1065b2d23a162edc53ba6d069d68f83ab9f8ab48",
+      "file": "src/promotion/module_2d4685.py",
+      "line": 118
+    },
+    "heuristic_sha": "f2de4a5f55753b1928a60c3729db9eb7d7d3c0a8",
+    "detection": {
+      "detected": false,
+      "classification": "healthy",
+      "summary": "Discount composition metric is within normal expected parameters.",
+      "reason": "Observed outcome of 55.0 is closely aligned with the expected outcome of 60.0 given a sufficient sample size of 1200.",
+      "evidence_refs": [
+        "e1"
+      ],
+      "accounts_review": [],
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 1339,
+      "max_output_tokens": 1000,
+      "usage": {
+        "input_tokens": 773,
+        "output_tokens": 98,
+        "total_tokens": 871
+      }
+    },
+    "result": {
+      "suspect_commit_sha": "1065b2d23a162edc53ba6d069d68f83ab9f8ab48",
+      "file": "src/promotion/module_2d4685.py",
+      "line": 118,
+      "defect_explanation": "The commit changes the discount calculation from multiplicative stacking (price * 0.8 * 0.75, yielding 60.0 for a price of 100) to additive subtraction of rates (price * (1 - 0.2 - 0.25) = price * 0.55, yielding 55.0 for a price of 100). This directly explains the observed outcome of 55.0 instead of the expected 60.0.",
+      "summary": "Discount calculation changed from multiplicative to additive, altering the final evaluated price from 60.0 to 55.0.",
+      "recommended_verification": "Run unit tests for promotion module evaluating prices with multiple discounts.",
+      "ruled_out_commits": [
+        {
+          "sha": "04a3820d9e0048bd9c80d95278e12764f3d6a1a4",
+          "reason": "Retains the original multiplicative discount calculation (price * 0.8 * 0.75), which preserves the expected outcome of 60.0."
+        },
+        {
+          "sha": "16bbb189c8d1fecc59bdfdad11537019f29a4be7",
+          "reason": "Only modifies cache TTL and does not affect discount composition."
+        },
+        {
+          "sha": "88f7b8a0cc4126493a707c3e84be0f9e5a212c3d",
+          "reason": "Only adds string stripping for labels and does not affect discount composition."
+        },
+        {
+          "sha": "f2de4a5f55753b1928a60c3729db9eb7d7d3c0a8",
+          "reason": "Only adds a comment and does not alter operational code logic."
+        }
+      ],
+      "suggested_fix_diff": "",
+      "guard_test_diff": "",
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 3893,
+      "max_output_tokens": 2600,
+      "usage": {
+        "input_tokens": 1655,
+        "output_tokens": 659,
+        "total_tokens": 2314
+      },
+      "attribution_status": "validated_reference",
+      "draft_warnings": [
+        "suggested_fix_diff: invalid unified diff; omitted",
+        "guard_test_diff: invalid unified diff; omitted"
+      ],
+      "draft_status": "Suggested only; not applied or executed"
+    },
+    "llm_top1": true,
+    "exact_reference": true,
+    "heuristic_top1": false,
+    "seconds": 4.47
+  },
+  {
+    "id": "bug-09",
+    "ground_truth": {
+      "sha": "6efdfedb7edb8719d5b6937d828c7e3a45cecbfb",
+      "file": "src/promotion/module_1613d3.py",
+      "line": 92
+    },
+    "heuristic_sha": "a66f7d2a30568102eb6fbd6678f424e3e272a29e",
+    "detection": {
+      "detected": true,
+      "classification": "business_regression",
+      "summary": "Drop in duplicate promotion rate observed compared to expected baseline.",
+      "reason": "Observation e1 shows observed outcome of 64.0 against an expected outcome of 80.0 for duplicate promotion with a sample size of 1200.",
+      "evidence_refs": [
+        "e1"
+      ],
+      "accounts_review": [],
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 1325,
+      "max_output_tokens": 1000,
+      "usage": {
+        "input_tokens": 755,
+        "output_tokens": 104,
+        "total_tokens": 859
+      }
+    },
+    "result": {
+      "suspect_commit_sha": "6efdfedb7edb8719d5b6937d828c7e3a45cecbfb",
+      "file": "src/promotion/module_1613d3.py",
+      "line": 92,
+      "defect_explanation": "The commit 6efdfedb7edb8719d5b6937d828c7e3a45cecbfb changes the evaluation function to multiply the price by 0.8 twice (price * .8 * .8), resulting in 64.0 for an input price of 100, which directly matches the observed outcome of 64.0 when the expected outcome was 80.0.",
+      "summary": "Identified commit 6efdfedb7edb8719d5b6937d828c7e3a45cecbfb as the cause of the duplicate promotion discount behavior.",
+      "recommended_verification": "Run unit tests for promotion module and verify evaluate function outputs 80.0 for price 100.",
+      "ruled_out_commits": [
+        {
+          "sha": "2f2a37d2bb4256af37ffc77193fb83eeda78fc64",
+          "reason": "Modifies cache TTL, which does not affect promotion calculation values."
+        },
+        {
+          "sha": "4f4b9915278f966bb1fc2e61e4aed49eeceb5d3a",
+          "reason": "Modifies string stripping on labels, unrelated to numerical price evaluation."
+        },
+        {
+          "sha": "8d5659015b89598454e32cb0c224c1c8bd17381b",
+          "reason": "Adds parentheses around the return expression without altering the mathematical outcome."
+        },
+        {
+          "sha": "a66f7d2a30568102eb6fbd6678f424e3e272a29e",
+          "reason": "Only adds a comment in metric recording, no change to calculation logic."
+        }
+      ],
+      "suggested_fix_diff": "--- src/promotion/module_1613d3.py\n+++ src/promotion/module_1613d3.py\n@@ -92,2 +92,2 @@\n-    return price * .8 * .8\n+    return price * .8",
+      "guard_test_diff": "--- tests/test_promotion.py\n+++ tests/test_promotion.py\n@@ -10,3 +10,3 @@\n def test_evaluate():\n-    assert evaluate(100) == 80.0\n+    assert evaluate(100) == 80.0",
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 3844,
+      "max_output_tokens": 2600,
+      "usage": {
+        "input_tokens": 1607,
+        "output_tokens": 717,
+        "total_tokens": 2324
+      },
+      "attribution_status": "validated_reference",
+      "draft_status": "Suggested only; not applied or executed"
+    },
+    "llm_top1": true,
+    "exact_reference": true,
+    "heuristic_top1": false,
+    "seconds": 4.68
+  },
+  {
+    "id": "bug-10",
+    "ground_truth": {
+      "sha": "36de8c0c55f97f23e89d8c94d89f2296e391b94b",
+      "file": "src/promotion/module_04a286.py",
+      "line": 93
+    },
+    "heuristic_sha": "ea86631b242e077eaa375e02017341624422b756",
+    "detection": {
+      "detected": true,
+      "classification": "business_regression",
+      "summary": "Observed discount cap outcome exceeds expected outcome significantly.",
+      "reason": "The discount cap metric showed an observed outcome of 45 against an expected outcome of 30 for a sample size of 1200 under input condition discount 45, indicating a regression in discount enforcement.",
+      "evidence_refs": [
+        "e1"
+      ],
+      "accounts_review": [],
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 1316,
+      "max_output_tokens": 1000,
+      "usage": {
+        "input_tokens": 755,
+        "output_tokens": 84,
+        "total_tokens": 839
+      }
+    },
+    "result": {
+      "suspect_commit_sha": "36de8c0c55f97f23e89d8c94d89f2296e391b94b",
+      "file": "src/promotion/module_04a286.py",
+      "line": 93,
+      "defect_explanation": "The commit changed the discount evaluation function from min(discount, 30) to max(discount, 30). For an input discount of 45, the old logic correctly capped it at 30, whereas the new logic returns max(45, 30), resulting in 45, which directly matches the observed failure.",
+      "summary": "Identified commit 36de8c0c55f97f23e89d8c94d89f2296e391b94b as the root cause of the discount cap failure due to an incorrect function change from min to max.",
+      "recommended_verification": "Run unit tests verifying the promotion discount evaluation function with inputs exceeding 30.",
+      "ruled_out_commits": [
+        {
+          "sha": "98acf09c5c9aa0d9258c01a880d8b35d3db19704",
+          "reason": "Modifies cache TTL which is unrelated to the discount cap metric observation."
+        },
+        {
+          "sha": "b748b77a4d2c88cdb8b1ec08b7017c1d8453c85a",
+          "reason": "Only adds redundant parentheses around a min function call, preserving correctness."
+        },
+        {
+          "sha": "def871e1473b70fecac928085048ee3cf7cb3aa8",
+          "reason": "Modifies cache TTL which is unrelated to the discount cap metric observation."
+        },
+        {
+          "sha": "ea86631b242e077eaa375e02017341624422b756",
+          "reason": "Only adds a comment without altering the execution logic."
+        }
+      ],
+      "suggested_fix_diff": "--- src/promotion/module_04a286.py\n+++ src/promotion/module_04a286.py\n@@ -93,2 +93,2 @@\n-    return max(discount, 30)\n+    return min(discount, 30)",
+      "guard_test_diff": "--- tests/promotion/test_module_04a286.py\n+++ tests/promotion/test_module_04a286.py\n@@ -10,2 +10,5 @@\n+def test_evaluate_discount_cap():\n+    assert evaluate(45) == 30\n",
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 3848,
+      "max_output_tokens": 2600,
+      "usage": {
+        "input_tokens": 1630,
+        "output_tokens": 711,
+        "total_tokens": 2341
+      },
+      "attribution_status": "validated_reference",
+      "draft_status": "Suggested only; not applied or executed"
+    },
+    "llm_top1": true,
+    "exact_reference": true,
+    "heuristic_top1": false,
+    "seconds": 4.71
+  },
+  {
+    "id": "bug-11",
+    "ground_truth": {
+      "sha": "2f32e4e4996a96c9c62cf2706f2b82e6c240b2be",
+      "file": "src/promotion/module_44ca14.py",
+      "line": 68
+    },
+    "heuristic_sha": "29b147e9d7eb4ab8882b44caddc769ae1e1903f0",
+    "detection": {
+      "detected": false,
+      "classification": "healthy",
+      "summary": "Tax calculation metric is performing within expected parameters.",
+      "reason": "Observed outcome of 90.0 is closely aligned with the expected outcome of 88.0 across a sufficient sample size of 1200, showing no significant business regression or anomaly.",
+      "evidence_refs": [
+        "e1"
+      ],
+      "accounts_review": [],
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 1321,
+      "max_output_tokens": 1000,
+      "usage": {
+        "input_tokens": 751,
+        "output_tokens": 106,
+        "total_tokens": 857
+      }
+    },
+    "result": {
+      "suspect_commit_sha": "2f32e4e4996a96c9c62cf2706f2b82e6c240b2be",
+      "file": "src/promotion/module_44ca14.py",
+      "line": 68,
+      "defect_explanation": "The change in module_44ca14.py modifies the tax and discount evaluation calculation from price * 0.8 * 1.1 (which yields 88.0 for a price of 100) to price * 0.8 + price * 0.1 (which yields 80.0 + 10.0 = 90.0). This directly explains the observed outcome of 90.0 against the expected outcome of 88.0 for an input price of 100.",
+      "summary": "Commit 2f32e4e4996a96c9c62cf2706f2b82e6c240b2be introduced a calculation error in src/promotion/module_44ca14.py that changes tax calculation results.",
+      "recommended_verification": "Run unit tests for pricing and tax calculation modules to verify expected outputs.",
+      "ruled_out_commits": [
+        {
+          "sha": "29b147e9d7eb4ab8882b44caddc769ae1e1903f0",
+          "reason": "Only adds a comment and returns the event without altering calculation logic."
+        },
+        {
+          "sha": "37446dc1aa7bc56757e4b6f0fda8cb4ffceed48d",
+          "reason": "Only adds parentheses around the expression without changing the mathematical outcome."
+        },
+        {
+          "sha": "403ab4754df3c4bfb10444cb867454512f30c0aa",
+          "reason": "Only changes cache TTL values which does not affect tax calculation output."
+        },
+        {
+          "sha": "fdc66eebc76d8d7ac8ec55bf4858a401b86e8f11",
+          "reason": "Only changes cache TTL values which does not affect tax calculation output."
+        }
+      ],
+      "suggested_fix_diff": "--- src/promotion/module_44ca14.py\n+++ src/promotion/module_44ca14.py\n@@ -68,2 +68,2 @@\n-    return price * .8 + price * .1\n+    return price * .8 * 1.1",
+      "guard_test_diff": "--- tests/test_module_44ca14.py\n+++ tests/test_module_44ca14.py\n@@ -0,0 +1,3 @@\n+def test_evaluate():\n+    assert evaluate(100) == 88.0\n",
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 3845,
+      "max_output_tokens": 2600,
+      "usage": {
+        "input_tokens": 1623,
+        "output_tokens": 736,
+        "total_tokens": 2359
+      },
+      "attribution_status": "validated_reference",
+      "draft_status": "Suggested only; not applied or executed"
+    },
+    "llm_top1": true,
+    "exact_reference": true,
+    "heuristic_top1": false,
+    "seconds": 4.62
+  },
+  {
+    "id": "bug-12",
+    "ground_truth": {
+      "sha": "f6d72881b319262c1fcc3e22928887c46130ce85",
+      "file": "src/checkout/module_c8d74d.py",
+      "line": 73
+    },
+    "heuristic_sha": "73b7d8090c14be412f4e983b37c95af1bbe2a2fb",
+    "detection": {
+      "detected": true,
+      "classification": "operational_incident",
+      "summary": "Shipping eligibility logic grants free or valid shipping incorrectly to orders below threshold.",
+      "reason": "Observation e1 shows observed_outcome true while expected_outcome is false for subtotal 30 with sample size 1200.",
+      "evidence_refs": [
+        "e1"
+      ],
+      "accounts_review": [],
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 1329,
+      "max_output_tokens": 1000,
+      "usage": {
+        "input_tokens": 755,
+        "output_tokens": 94,
+        "total_tokens": 849
+      }
+    },
+    "result": {
+      "suspect_commit_sha": "f6d72881b319262c1fcc3e22928887c46130ce85",
+      "file": "src/checkout/module_c8d74d.py",
+      "line": 73,
+      "defect_explanation": "The commit changes the evaluation logic for shipping eligibility from subtotal >= 50 to subtotal <= 50. For an input subtotal of 30, the old logic correctly returned false, but the new logic evaluates 30 <= 50 as true, directly matching the observed failure.",
+      "summary": "Commit f6d72881b319262c1fcc3e22928887c46130ce85 introduced an incorrect comparison operator, causing orders below the threshold to incorrectly qualify for shipping.",
+      "recommended_verification": "Run the checkout shipping eligibility test suite with subtotal inputs both below and above 50 to ensure correct boolean outputs.",
+      "ruled_out_commits": [
+        {
+          "sha": "17401b5d64f8d81b2e67d7ce7e389e2e6636e19d",
+          "reason": "Changes cache TTL return value, which does not affect shipping eligibility logic."
+        },
+        {
+          "sha": "438886df9af637f3528d47c253d78faa1a748cf5",
+          "reason": "Changes cache TTL return value, which does not affect shipping eligibility logic."
+        },
+        {
+          "sha": "82d57b27dee9d72a51ea0106e75368a54541fef0",
+          "reason": "Adds redundant parentheses around the condition without altering the boolean evaluation outcome for subtotal 30."
+        },
+        {
+          "sha": "73b7d8090c14be412f4e983b37c95af1bbe2a2fb",
+          "reason": "Only adds a comment inside a metric recording function, which does not affect business evaluation."
+        }
+      ],
+      "suggested_fix_diff": "--- a/src/checkout/module_c8d74d.py\n+++ b/src/checkout/module_c8d74d.py\n@@ -73,2 +73,2 @@\n def evaluate(subtotal):\n-    return subtotal <= 50\n+    return subtotal >= 50",
+      "guard_test_diff": "--- /dev/null\n+++ b/tests/checkout/test_module_c8d74d.py\n@@ -0,0 +1,4 @@\n+def test_evaluate_shipping_eligibility():\n+    from src.checkout.module_c8d74d import evaluate\n+    assert evaluate(30) is False\n+    assert evaluate(60) is True",
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 3809,
+      "max_output_tokens": 2600,
+      "usage": {
+        "input_tokens": 1614,
+        "output_tokens": 741,
+        "total_tokens": 2355
+      },
+      "attribution_status": "validated_reference",
+      "draft_status": "Suggested only; not applied or executed"
+    },
+    "llm_top1": true,
+    "exact_reference": true,
+    "heuristic_top1": false,
+    "seconds": 4.62
+  },
+  {
+    "id": "bug-13",
+    "ground_truth": {
+      "sha": "c56b5b1ca0a6061ae5a3ad863fac6f3571d7d337",
+      "file": "src/banking/module_c35316.py",
+      "line": 127
+    },
+    "heuristic_sha": "aa15ac68f49109c60dee8f8a0437d9c0a9b2d93c",
+    "detection": {
+      "detected": true,
+      "classification": "data_quality",
+      "summary": "Refund direction metric inversion detected with positive outcomes instead of expected negative values.",
+      "reason": "Observed outcome of 1200 directly contradicts the expected outcome of -1200 for the refund direction metric.",
+      "evidence_refs": [
+        "e1"
+      ],
+      "accounts_review": [],
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 1325,
+      "max_output_tokens": 1000,
+      "usage": {
+        "input_tokens": 756,
+        "output_tokens": 97,
+        "total_tokens": 853
+      }
+    },
+    "result": {
+      "suspect_commit_sha": "c56b5b1ca0a6061ae5a3ad863fac6f3571d7d337",
+      "file": "src/banking/module_c35316.py",
+      "line": 127,
+      "defect_explanation": "Commit c56b5b1ca0a6061ae5a3ad863fac6f3571d7d337 changes evaluate(amount) to return amount instead of -amount. Given an input of 1200, the expected outcome was -1200, but the observed outcome became 1200 due to this sign inversion.",
+      "summary": "The refund direction evaluation logic was inverted, causing positive refund amounts instead of negative values.",
+      "recommended_verification": "Run unit tests for evaluate function with positive and negative inputs.",
+      "ruled_out_commits": [
+        {
+          "sha": "aa15ac68f49109c60dee8f8a0437d9c0a9b2d93c",
+          "reason": "Only adds a comment and does not affect numerical computation or refund direction."
+        },
+        {
+          "sha": "d9be166f2a4b6b4c1b690220bdf90986ecd58063",
+          "reason": "Changes cache TTL, which is unrelated to refund direction calculation."
+        },
+        {
+          "sha": "dc981b9e251dc3bd7e5b7e8be9d7d6cf3574d987",
+          "reason": "Changes cache TTL, which is unrelated to refund direction calculation."
+        },
+        {
+          "sha": "f185726b58d0f3cb9edaa8b3cf3ca590ba6a83b2",
+          "reason": "Preserves the negative sign (-amount), which would result in the expected outcome -1200 rather than the observed 1200."
+        }
+      ],
+      "suggested_fix_diff": "--- src/banking/module_c35316.py\n+++ src/banking/module_c35316.py\n@@ -127,2 +127,2 @@\n-    return amount\n+    return -amount",
+      "guard_test_diff": "--- tests/test_module_c35316.py\n+++ tests/test_module_c35316.py\n@@ -1,3 +1,3 @@\n def test_evaluate():\n-    assert evaluate(1200) == -1200\n+    assert evaluate(1200) == -1200",
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 3814,
+      "max_output_tokens": 2600,
+      "usage": {
+        "input_tokens": 1586,
+        "output_tokens": 686,
+        "total_tokens": 2272
+      },
+      "attribution_status": "validated_reference",
+      "draft_status": "Suggested only; not applied or executed"
+    },
+    "llm_top1": true,
+    "exact_reference": true,
+    "heuristic_top1": false,
+    "seconds": 4.74
+  },
+  {
+    "id": "bug-14",
+    "ground_truth": {
+      "sha": "6b0d1c0a695c79619b42d0d525c09b3d5c5b5920",
+      "file": "src/banking/module_57b2aa.py",
+      "line": 179
+    },
+    "heuristic_sha": "c8b2d4c3e0ab90abe352dc1954092bd4809cfe80",
+    "detection": {
+      "detected": true,
+      "classification": "business_regression",
+      "summary": "Massive spike in refund percentage observed in e1.",
+      "reason": "Observed outcome of 200,000 vastly exceeds the expected outcome of 2,000 for the refund percentage metric with a sample size of 1200.",
+      "evidence_refs": [
+        "e1"
+      ],
+      "accounts_review": [],
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 1327,
+      "max_output_tokens": 1000,
+      "usage": {
+        "input_tokens": 767,
+        "output_tokens": 108,
+        "total_tokens": 875
+      }
+    },
+    "result": {
+      "suspect_commit_sha": "6b0d1c0a695c79619b42d0d525c09b3d5c5b5920",
+      "file": "src/banking/module_57b2aa.py",
+      "line": 179,
+      "defect_explanation": "The commit changes the multiplier in evaluate(amount) from 0.25 to 25. For an input amount of 8000, the expected refund was round(8000 * 0.25) = 2000, but the new code computes round(8000 * 25) = 200000, perfectly matching the observed failure.",
+      "summary": "Commit 6b0d1c0a695c79619b42d0d525c09b3d5c5b5920 introduces a multiplier error in module_57b2aa.py, causing refund amounts to be inflated by a factor of 100.",
+      "recommended_verification": "Run unit tests for module_57b2aa.py with various input amounts to verify refund calculation correctness.",
+      "ruled_out_commits": [
+        {
+          "sha": "367340e5a71849b0c0fbb89a71257cf8db7fd92e",
+          "reason": "Only modifies cache TTL return value, which does not affect calculation amounts."
+        },
+        {
+          "sha": "54f2064c042b1b896d0d315f05d9148c63c5d07f",
+          "reason": "Only adds redundant parentheses to a 0.25 multiplier, preserving correctness."
+        },
+        {
+          "sha": "c8b2d4c3e0ab90abe352dc1954092bd4809cfe80",
+          "reason": "Only adds a comment inside record_metric, which does not alter calculation logic."
+        },
+        {
+          "sha": "d58399df8d0223ada3824e2105415286541791d8",
+          "reason": "Only modifies cache TTL return value in a different module."
+        }
+      ],
+      "suggested_fix_diff": "--- src/banking/module_57b2aa.py\n+++ src/banking/module_57b2aa.py\n@@ -178,2 +178,2 @@\n def evaluate(amount):\n-    return round(amount * 25)\n+    return round(amount * 0.25)",
+      "guard_test_diff": "--- /dev/null\n+++ src/banking/test_module_57b2aa.py\n@@ -0,0 +1,3 @@\n+def test_evaluate():\n+    from src.banking.module_57b2aa import evaluate\n+    assert evaluate(8000) == 2000",
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 3893,
+      "max_output_tokens": 2600,
+      "usage": {
+        "input_tokens": 1648,
+        "output_tokens": 761,
+        "total_tokens": 2409
+      },
+      "attribution_status": "validated_reference",
+      "draft_status": "Suggested only; not applied or executed"
+    },
+    "llm_top1": true,
+    "exact_reference": true,
+    "heuristic_top1": false,
+    "seconds": 4.68
+  },
+  {
+    "id": "bug-15",
+    "ground_truth": {
+      "sha": "4e0977963e11ba7ae8c63459867ced45fcfa4152",
+      "file": "src/banking/module_dfa11a.py",
+      "line": 94
+    },
+    "heuristic_sha": "4e0977963e11ba7ae8c63459867ced45fcfa4152",
+    "detection": {
+      "detected": false,
+      "classification": "healthy",
+      "summary": "Cashbck settlement observation shows standard pending status resolution with adequate sample size.",
+      "reason": "Observed outcomes are consistent with expected processing behavior for pending status transitions. No anomalies detected.",
+      "evidence_refs": [
+        "e1"
+      ],
+      "accounts_review": [],
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 1333,
+      "max_output_tokens": 1000,
+      "usage": {
+        "input_tokens": 748,
+        "output_tokens": 88,
+        "total_tokens": 836
+      }
+    },
+    "result": {
+      "suspect_commit_sha": "4e0977963e11ba7ae8c63459867ced45fcfa4152",
+      "file": "src/banking/module_dfa11a.py",
+      "line": 94,
+      "defect_explanation": "The evaluation function was changed from checking specifically for settled status to returning true for any status except failed. This causes pending transactions to be incorrectly evaluated as successful, matching the observed failure where pending cashback settlements trigger incorrectly.",
+      "summary": "Commit 4e0977963e11ba7ae8c63459867ced45fcfa4152 introduced a logic flaw in module_dfa11a.py by changing the evaluation condition to status != 'failed', causing pending statuses to pass.",
+      "recommended_verification": "Run unit tests for cashback settlement status evaluation covering pending, settled, and failed states.",
+      "ruled_out_commits": [
+        {
+          "sha": "27d6cee1b94225f7a45f2bfd306e31b39dc3a39d",
+          "reason": "Does not change evaluation behavior, only adds parentheses around the same comparison."
+        },
+        {
+          "sha": "5e1938c527d9acbcda68b965607bf99219fcfcdc",
+          "reason": "Only adds a comment to the record_metric function without changing logic."
+        },
+        {
+          "sha": "e4a9e17db9924d7a97ac8de91789d146d5ee279b",
+          "reason": "Only changes cache TTL values which is unrelated to cashback settlement evaluation."
+        },
+        {
+          "sha": "f6e807c598a15ba8a57ca7892390c82e49a9119a",
+          "reason": "Only adds string stripping to a label function, unrelated to status evaluation."
+        }
+      ],
+      "suggested_fix_diff": "--- src/banking/module_dfa11a.py\n+++ src/banking/module_dfa11a.py\n@@ -94,2 +94,2 @@\n-    return status != \"failed\"\n+    return status == \"settled\"",
+      "guard_test_diff": "--- tests/test_module_dfa11a.py\n+++ tests/test_module_dfa11a.py\n@@ -10,2 +10,3 @@\n     assert evaluate(\"settled\") == True\n+    assert evaluate(\"pending\") == False\n     assert evaluate(\"failed\") == False",
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 3951,
+      "max_output_tokens": 2600,
+      "usage": {
+        "input_tokens": 1609,
+        "output_tokens": 678,
+        "total_tokens": 2287
+      },
+      "attribution_status": "validated_reference",
+      "draft_status": "Suggested only; not applied or executed"
+    },
+    "llm_top1": true,
+    "exact_reference": true,
+    "heuristic_top1": true,
+    "seconds": 4.69
+  },
+  {
+    "id": "bug-16",
+    "ground_truth": {
+      "sha": "b25619d8e2ba61de0abd2c51f0fb5ffe595b1c6d",
+      "file": "src/delivery/module_43555d.py",
+      "line": 167
+    },
+    "heuristic_sha": "26e16a60939a2d989c673b748980a52c5040cd0f",
+    "detection": {
+      "detected": false,
+      "classification": "healthy",
+      "summary": "Delivery promise metric observed normal expected behavior.",
+      "reason": "The observed outcome matches expected delivery promise conditions over the sample window.",
+      "evidence_refs": [
+        "e1"
+      ],
+      "accounts_review": [],
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 1321,
+      "max_output_tokens": 1000,
+      "usage": {
+        "input_tokens": 753,
+        "output_tokens": 76,
+        "total_tokens": 829
+      }
+    },
+    "result": {
+      "suspect_commit_sha": "b25619d8e2ba61de0abd2c51f0fb5ffe595b1c6d",
+      "file": "src/delivery/module_43555d.py",
+      "line": 167,
+      "defect_explanation": "Commit b25619d8e2ba61de0abd2c51f0fb5ffe595b1c6d changed the evaluate function condition from days <= 5 to days <= 15, causing an input condition of 10 days to return true for delivery promise evaluation instead of false.",
+      "summary": "Increased the delivery promise threshold from 5 days to 15 days, directly causing the observed failure where 10-day inputs unexpectedly return true.",
+      "recommended_verification": "Verify that evaluate correctly returns false for inputs where days is greater than 5.",
+      "ruled_out_commits": [
+        {
+          "sha": "0c87ef67bf0c05ec772f6a1b5666f75e08416fd3",
+          "reason": "Changes cache TTL which does not affect the delivery promise evaluation logic for 10 days."
+        },
+        {
+          "sha": "26e16a60939a2d989c673b748980a52c5040cd0f",
+          "reason": "Only adds a comment inside record_metric, which does not alter code behavior."
+        },
+        {
+          "sha": "51151260bcf1cc853453b10d54564f2df466ba17",
+          "reason": "Only adds string stripping in label function, unrelated to days evaluation."
+        },
+        {
+          "sha": "9d07857fb526e97772cde796a92585d4336884f6",
+          "reason": "Preserves existing evaluation logic by only adding parentheses around the expression."
+        }
+      ],
+      "suggested_fix_diff": "--- src/delivery/module_43555d.py\n+++ src/delivery/module_43555d.py\n@@ -166,2 +166,2 @@\n def evaluate(days):\n-    return days <= 15\n+    return days <= 5",
+      "guard_test_diff": "--- tests/test_module_43555d.py\n+++ tests/test_module_43555d.py\n@@ -10,2 +10,3 @@\n     assert evaluate(5) is True\n+    assert evaluate(10) is False\n     assert evaluate(15) is False",
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 3832,
+      "max_output_tokens": 2600,
+      "usage": {
+        "input_tokens": 1611,
+        "output_tokens": 693,
+        "total_tokens": 2304
+      },
+      "attribution_status": "validated_reference",
+      "draft_status": "Suggested only; not applied or executed"
+    },
+    "llm_top1": true,
+    "exact_reference": true,
+    "heuristic_top1": false,
+    "seconds": 4.74
+  },
+  {
+    "id": "bug-17",
+    "ground_truth": {
+      "sha": "01bb022a2ba5acf448c5d369f17bf54cdea740a1",
+      "file": "src/checkout/module_2b7616.py",
+      "line": 119
+    },
+    "heuristic_sha": "2b26ad5aaef28578a10878f55484e3ee0b70c367",
+    "detection": {
+      "detected": true,
+      "classification": "operational_incident",
+      "summary": "Missing payment token errors detected in the payment flow.",
+      "reason": "Observation e1 indicates missing payment tokens occurring in 1200 sampled transactions under specific input conditions.",
+      "evidence_refs": [
+        "e1"
+      ],
+      "accounts_review": [],
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 1337,
+      "max_output_tokens": 1000,
+      "usage": {
+        "input_tokens": 746,
+        "output_tokens": 88,
+        "total_tokens": 834
+      }
+    },
+    "result": {
+      "suspect_commit_sha": "01bb022a2ba5acf448c5d369f17bf54cdea740a1",
+      "file": "src/checkout/module_2b7616.py",
+      "line": 119,
+      "defect_explanation": "The commit unconditionally returns True for the token evaluation function instead of checking if the token exists, causing requests with missing payment tokens to bypass validation and result in missing payment token errors.",
+      "summary": "Commit 01bb022a2ba5acf448c5d369f17bf54cdea740a1 introduced an unconditional True return in token evaluation.",
+      "recommended_verification": "Verify token evaluation rejects empty or missing tokens.",
+      "ruled_out_commits": [
+        {
+          "sha": "0375528a87aec74cf1095f6e00f6c6118398af00",
+          "reason": "Changes string strip behavior which does not relate to missing payment tokens."
+        },
+        {
+          "sha": "08f7c5ff24dd6aaf51001b8cc152bbb1fe999480",
+          "reason": "Modifies cache TTL values unrelated to token presence."
+        },
+        {
+          "sha": "2b26ad5aaef28578a10878f55484e3ee0b70c367",
+          "reason": "Only adds a comment."
+        },
+        {
+          "sha": "30cec26b954c7da0ce2cadd85e21b0b355b1592d",
+          "reason": "Adds redundant parentheses around bool(token) which preserves original behavior."
+        }
+      ],
+      "suggested_fix_diff": "--- src/checkout/module_2b7616.py\n+++ src/checkout/module_2b7616.py\n@@ -119,2 +119,2 @@\n def evaluate(token):\n-    return True\n+    return bool(token)",
+      "guard_test_diff": "--- tests/test_module_2b7616.py\n+++ tests/test_module_2b7616.py\n@@ -1,3 +1,3 @@\n def test_evaluate():\n-    assert evaluate(None) is True\n+    assert evaluate(None) is False",
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 3825,
+      "max_output_tokens": 2600,
+      "usage": {
+        "input_tokens": 1580,
+        "output_tokens": 621,
+        "total_tokens": 2201
+      },
+      "attribution_status": "validated_reference",
+      "draft_status": "Suggested only; not applied or executed"
+    },
+    "llm_top1": true,
+    "exact_reference": true,
+    "heuristic_top1": false,
+    "seconds": 4.94
+  },
+  {
+    "id": "bug-18",
+    "ground_truth": {
+      "sha": "297d9e483e832e4e0a3cf9f6ef9d826a461b95a9",
+      "file": "src/checkout/module_ac1834.py",
+      "line": 103
+    },
+    "heuristic_sha": "8ca370cb8e44c7703beaad80e76ca3d345606166",
+    "detection": {
+      "detected": true,
+      "classification": "data_quality",
+      "summary": "Observed outcome data missing for redirect token source metric in observation e1.",
+      "reason": "Observation e1 shows a sample size of 1200 with an empty observed_outcome field, indicating an instrumentation or data quality gap.",
+      "evidence_refs": [
+        "e1"
+      ],
+      "accounts_review": [],
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 1352,
+      "max_output_tokens": 1000,
+      "usage": {
+        "input_tokens": 749,
+        "output_tokens": 102,
+        "total_tokens": 851
+      }
+    },
+    "result": {
+      "suspect_commit_sha": "297d9e483e832e4e0a3cf9f6ef9d826a461b95a9",
+      "file": "src/checkout/module_ac1834.py",
+      "line": 103,
+      "defect_explanation": "Commit 297d9e483e832e4e0a3cf9f6ef9d826a461b95a9 changes evaluate(session_token) to return an empty string instead of the session_token. This causes valid redirect tokens to be dropped, resulting in empty observed outcomes for valid-token inputs.",
+      "summary": "Commit 297d9e483e832e4e0a3cf9f6ef9d826a461b95a9 breaks the redirect token source evaluation by returning empty strings.",
+      "recommended_verification": "Run the checkout module unit tests to verify that evaluate returns the correct session token.",
+      "ruled_out_commits": [
+        {
+          "sha": "2da52289a2cb070bb9e90e2c6ce0a9d2e6f45f0f",
+          "reason": "Redundant parentheses around session_token preserve the exact return value and do not cause empty outcomes."
+        },
+        {
+          "sha": "56683a21e44f254baa9aabb2092ce6478bc0d23e",
+          "reason": "Trimming string values does not clear valid session tokens completely."
+        },
+        {
+          "sha": "8ca370cb8e44c7703beaad80e76ca3d345606166",
+          "reason": "Only adds a comment and returns the event unchanged."
+        },
+        {
+          "sha": "be71edbcf267848d0f8f082c60f655ee11fbcdaf",
+          "reason": "Modifies cache TTL which is unrelated to redirect token source evaluation."
+        }
+      ],
+      "suggested_fix_diff": "--- a/src/checkout/module_ac1834.py\n+++ b/src/checkout/module_ac1834.py\n@@ -103,1 +103,1 @@\n-    return \"\"\n+    return session_token",
+      "guard_test_diff": "--- /dev/null\n+++ b/tests/test_module_ac1834.py\n@@ -0,0 +1,5 @@\n+from src.checkout.module_ac1834 import evaluate\n+\n+def test_evaluate_session_token():\n+    [REDACTED]\n+    assert evaluate(token) == token",
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 3881,
+      "max_output_tokens": 2600,
+      "usage": {
+        "input_tokens": 1598,
+        "output_tokens": 704,
+        "total_tokens": 2302
+      },
+      "attribution_status": "validated_reference",
+      "draft_status": "Suggested only; not applied or executed"
+    },
+    "llm_top1": true,
+    "exact_reference": true,
+    "heuristic_top1": false,
+    "seconds": 4.5
+  },
+  {
+    "id": "bug-19",
+    "ground_truth": {
+      "sha": "e947f53e88e381dd2d2cbc0eb605392f8b87f54a",
+      "file": "src/banking/module_66a258.py",
+      "line": 64
+    },
+    "heuristic_sha": "a2ee6d8cb66fdf330445f7c9fe596aea2b5b33d3",
+    "detection": {
+      "detected": false,
+      "classification": "healthy",
+      "summary": "Callback business status observations are consistent with expected behavior.",
+      "reason": "The observation e1 shows an expected outcome of false with an observed outcome of true over a sample size of 1200 under failed input conditions, which is normal for callback processing. No regressions or anomalies were detected.",
+      "evidence_refs": [
+        "e1"
+      ],
+      "accounts_review": [],
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 1337,
+      "max_output_tokens": 1000,
+      "usage": {
+        "input_tokens": 750,
+        "output_tokens": 82,
+        "total_tokens": 832
+      }
+    },
+    "result": {
+      "suspect_commit_sha": "e947f53e88e381dd2d2cbc0eb605392f8b87f54a",
+      "file": "src/banking/module_66a258.py",
+      "line": 64,
+      "defect_explanation": "The commit changes the evaluate function to unconditionally return True regardless of the input status, causing failed callback statuses to be incorrectly reported as successful/settled.",
+      "summary": "Commit e947f53e88e381dd2d2cbc0eb605392f8b87f54a introduced a bug by making evaluate status return True unconditionally.",
+      "recommended_verification": "Verify that evaluate correctly returns False for failed status inputs.",
+      "ruled_out_commits": [
+        {
+          "sha": "3d6ca910ee464a2bfecefb10de60184a12c822f3",
+          "reason": "Only adds string stripping which does not affect status evaluation logic."
+        },
+        {
+          "sha": "42b1714a4331f65745d11d092923c4161e42e389",
+          "reason": "Preserves existing boolean check with parentheses."
+        },
+        {
+          "sha": "a2ee6d8cb66fdf330445f7c9fe596aea2b5b33d3",
+          "reason": "Only adds a comment."
+        },
+        {
+          "sha": "a88ca21a636684ca025030f75434ced89c763fdd",
+          "reason": "Only changes cache TTL values."
+        }
+      ],
+      "suggested_fix_diff": "",
+      "guard_test_diff": "",
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 3918,
+      "max_output_tokens": 2600,
+      "usage": {
+        "input_tokens": 1600,
+        "output_tokens": 546,
+        "total_tokens": 2146
+      },
+      "attribution_status": "validated_reference",
+      "draft_warnings": [
+        "suggested_fix_diff: invalid unified diff; omitted",
+        "guard_test_diff: invalid unified diff; omitted"
+      ],
+      "draft_status": "Suggested only; not applied or executed"
+    },
+    "llm_top1": true,
+    "exact_reference": true,
+    "heuristic_top1": false,
+    "seconds": 4.48
+  },
+  {
+    "id": "bug-20",
+    "ground_truth": {
+      "sha": "1c1c5e8f920d652506592b58521f2a621ba33d3d",
+      "file": "src/banking/module_094849.py",
+      "line": 53
+    },
+    "heuristic_sha": "334500066fd43ce4243ba2d425fdf09a4af7b427",
+    "detection": {
+      "detected": false,
+      "classification": "healthy",
+      "summary": "Timeout handling metric shows expected behavior without regression.",
+      "reason": "Observation e1 indicates timeout handling occurred as expected for the sample size, and no business regression or anomaly was identified.",
+      "evidence_refs": [
+        "e1"
+      ],
+      "accounts_review": [],
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 1328,
+      "max_output_tokens": 1000,
+      "usage": {
+        "input_tokens": 752,
+        "output_tokens": 87,
+        "total_tokens": 839
+      }
+    },
+    "result": {
+      "suspect_commit_sha": "1c1c5e8f920d652506592b58521f2a621ba33d3d",
+      "file": "src/banking/module_094849.py",
+      "line": 53,
+      "defect_explanation": "The commit changes evaluate(timed_out) to unconditionally return True instead of returning not timed_out. When timed_out is true, the function now incorrectly returns True instead of False, reproducing the observed failure.",
+      "summary": "Commit 1c1c5e8f920d652506592b58521f2a621ba33d3d introduced a defect in timeout handling by making the evaluation return True regardless of the timeout state.",
+      "recommended_verification": "Run unit tests for module_094849.py with timed_out set to true and verify that evaluate returns false.",
+      "ruled_out_commits": [
+        {
+          "sha": "235448f49ebdae481ed4f0b7f1a5ace041a62f0f",
+          "reason": "Changes label formatting which is unrelated to timeout handling."
+        },
+        {
+          "sha": "334500066fd43ce4243ba2d425fdf09a4af7b427",
+          "reason": "Only adds a comment and does not affect timeout logic."
+        },
+        {
+          "sha": "db6852c3d3f7fd7babc5b7ea39b114eb86929911",
+          "reason": "Wraps the return expression in parentheses without altering the boolean logic for timeouts."
+        },
+        {
+          "sha": "e74417d36ef750e8c0472407b6ab2c37a463be9a",
+          "reason": "Modifies cache TTL duration which is unrelated to timeout handling."
+        }
+      ],
+      "suggested_fix_diff": "--- a/src/banking/module_094849.py\n+++ b/src/banking/module_094849.py\n@@ -53,2 +53,2 @@\n def evaluate(timed_out):\n-    return True\n+    return not timed_out",
+      "guard_test_diff": "--- /dev/null\n+++ b/src/banking/test_module_094849.py\n@@ -0,0 +1,3 @@\n+def test_evaluate_timeout():\n+    from src.banking.module_094849 import evaluate\n+    assert evaluate(True) is False",
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 3894,
+      "max_output_tokens": 2600,
+      "usage": {
+        "input_tokens": 1611,
+        "output_tokens": 688,
+        "total_tokens": 2299
+      },
+      "attribution_status": "validated_reference",
+      "draft_status": "Suggested only; not applied or executed"
+    },
+    "llm_top1": true,
+    "exact_reference": true,
+    "heuristic_top1": false,
+    "seconds": 4.7
+  },
+  {
+    "id": "bug-21",
+    "ground_truth": {
+      "sha": "980de636fe4993c19ad68af267868e354d67da4b",
+      "file": "src/banking/module_4b0542.py",
+      "line": 110
+    },
+    "heuristic_sha": "27bc53e0689d9326fcacf8a04c26f58fd4f98e4b",
+    "detection": {
+      "detected": false,
+      "classification": "healthy",
+      "summary": "Payout fees observed outcome is within normal operational variance compared to expected outcome.",
+      "reason": "The observed payout fees (9000) are very close to the expected outcome (8700) over a sufficient sample size (1200) with no anomalous indicators or account-level credit issues.",
+      "evidence_refs": [
+        "e1"
+      ],
+      "accounts_review": [],
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 1318,
+      "max_output_tokens": 1000,
+      "usage": {
+        "input_tokens": 757,
+        "output_tokens": 114,
+        "total_tokens": 871
+      }
+    },
+    "result": {
+      "suspect_commit_sha": "980de636fe4993c19ad68af267868e354d67da4b",
+      "file": "src/banking/module_4b0542.py",
+      "line": 110,
+      "defect_explanation": "The commit changed evaluate(gross) to return gross instead of gross - 300, eliminating the fee deduction and increasing the observed payout fees to match gross.",
+      "summary": "Commit 980de636fe4993c19ad68af267868e354d67da4b removed the fee deduction in module_4b0542.py, causing observed payout fees to equal gross instead of the expected gross minus 300.",
+      "recommended_verification": "Run unit tests verifying evaluate() subtracts the fee correctly.",
+      "ruled_out_commits": [
+        {
+          "sha": "27bc53e0689d9326fcacf8a04c26f58fd4f98e4b",
+          "reason": "Only adds a comment and returns the event unchanged, which does not affect payout fees."
+        },
+        {
+          "sha": "7e23a79bda0fe423b26cce33cd5f4419b4994425",
+          "reason": "Only changes cache TTL values, unrelated to payout fees."
+        },
+        {
+          "sha": "a0e8b785f8144d4e40e2d2a6e2c1e2bebd9921d0",
+          "reason": "Retains the fee deduction with parentheses, preserving original behavior."
+        },
+        {
+          "sha": "c2e221e44bf16b69b4ba34653cabd82701bb2ece",
+          "reason": "Only changes cache TTL values, unrelated to payout fees."
+        }
+      ],
+      "suggested_fix_diff": "--- src/banking/module_4b0542.py\n+++ src/banking/module_4b0542.py\n@@ -110,1 +110,1 @@\n-    return gross\n+    return gross - 300",
+      "guard_test_diff": "--- tests/test_module_4b0542.py\n+++ tests/test_module_4b0542.py\n@@ -10,1 +10,1 @@\n-    assert evaluate(9000) == 9000\n+    assert evaluate(9000) == 8700",
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 3821,
+      "max_output_tokens": 2600,
+      "usage": {
+        "input_tokens": 1612,
+        "output_tokens": 671,
+        "total_tokens": 2283
+      },
+      "attribution_status": "validated_reference",
+      "draft_status": "Suggested only; not applied or executed"
+    },
+    "llm_top1": true,
+    "exact_reference": true,
+    "heuristic_top1": false,
+    "seconds": 4.32
+  },
+  {
+    "id": "bug-22",
+    "ground_truth": {
+      "sha": "9dec88068e27de445b6c418b29cc1910f4c7a888",
+      "file": "src/promotion/module_600cf4.py",
+      "line": 158
+    },
+    "heuristic_sha": "b1ed7505cb1783bd74dbd4afd6d4f7003975b9f4",
+    "detection": {
+      "detected": false,
+      "classification": "healthy",
+      "summary": "Business outcomes and contribution margins remain within expected operational parameters.",
+      "reason": "Observed contribution margin exceeds expected baseline, representing a positive business outcome rather than a regression.",
+      "evidence_refs": [
+        "e1"
+      ],
+      "accounts_review": [],
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 1322,
+      "max_output_tokens": 1000,
+      "usage": {
+        "input_tokens": 751,
+        "output_tokens": 56,
+        "total_tokens": 807
+      }
+    },
+    "result": {
+      "suspect_commit_sha": "9dec88068e27de445b6c418b29cc1910f4c7a888",
+      "file": "src/promotion/module_600cf4.py",
+      "line": 158,
+      "defect_explanation": "The commit changes the evaluate function to return revenue directly instead of subtracting 64. Given an input revenue of 55, the old code would return 55 - 64 = -9 (matching the expected outcome), whereas the new code returns 55 (matching the observed outcome of 55).",
+      "summary": "Commit 9dec88068e27de445b6c418b29cc1910f4c7a888 modified the evaluate function in src/promotion/module_600cf4.py to omit the subtraction, causing contribution margin output to equal revenue directly.",
+      "recommended_verification": "Verify the evaluation logic in module_600cf4.py and ensure contribution margin calculations correctly subtract costs.",
+      "ruled_out_commits": [
+        {
+          "sha": "2034fd78f9561695eb5d0f1a1f4dc7ab9a8b42e9",
+          "reason": "Only modifies cache_ttl return value, which does not affect contribution margin evaluation."
+        },
+        {
+          "sha": "8d9206c30c5f7ef5b25c4327cc7df0ccb7e2385b",
+          "reason": "Only modifies cache_ttl return value, which does not affect contribution margin evaluation."
+        },
+        {
+          "sha": "a1b51557f50741f4f752de099ecfa0cde88d7a17",
+          "reason": "Merely adds parentheses around the return expression (revenue - 64), preserving the old behavior."
+        },
+        {
+          "sha": "b1ed7505cb1783bd74dbd4afd6d4f7003975b9f4",
+          "reason": "Only adds a comment, leaving the function behavior unchanged."
+        }
+      ],
+      "suggested_fix_diff": "--- a/src/promotion/module_600cf4.py\n+++ b/src/promotion/module_600cf4.py\n@@ -158,2 +158,2 @@\n     def evaluate(revenue):\n-        return revenue\n+        return revenue - 64\n",
+      "guard_test_diff": "--- /dev/null\n+++ b/tests/test_module_600cf4.py\n@@ -0,0 +1,5 @@\n+from promotion.module_600cf4 import evaluate\n+\n+def test_evaluate_contribution_margin():\n+    assert evaluate(55) == -9\n",
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 3806,
+      "max_output_tokens": 2600,
+      "usage": {
+        "input_tokens": 1597,
+        "output_tokens": 734,
+        "total_tokens": 2331
+      },
+      "attribution_status": "validated_reference",
+      "draft_status": "Suggested only; not applied or executed"
+    },
+    "llm_top1": true,
+    "exact_reference": true,
+    "heuristic_top1": false,
+    "seconds": 4.75
+  },
+  {
+    "id": "bug-23",
+    "ground_truth": {
+      "sha": "a835fe8f90bab295f3604cabc94f934a5f2572ff",
+      "file": "src/banking/module_06248f.py",
+      "line": 129
+    },
+    "heuristic_sha": "c8d6c67c62a9d3de2898998daebde38bea8193f9",
+    "detection": {
+      "detected": false,
+      "classification": "healthy",
+      "summary": "Minor unit rounding outcome aligns closely with expectations.",
+      "reason": "The observed outcome of 1012 is well within acceptable variance for the expected outcome of 1013 across the sample size of 1200.",
+      "evidence_refs": [
+        "e1"
+      ],
+      "accounts_review": [],
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 1333,
+      "max_output_tokens": 1000,
+      "usage": {
+        "input_tokens": 753,
+        "output_tokens": 99,
+        "total_tokens": 852
+      }
+    },
+    "result": {
+      "suspect_commit_sha": "a835fe8f90bab295f3604cabc94f934a5f2572ff",
+      "file": "src/banking/module_06248f.py",
+      "line": 129,
+      "defect_explanation": "The commit changes the rounding logic from Python's standard round() function, which implements round-half-to-even, to int() casting (truncation). For an input amount of 10.129, amount * 100 equals 1012.9. Standard round(1012.9) yields 1013, matching the expected outcome. However, int(1012.9) truncates the decimal part to 1012, directly reproducing the observed outcome of 1012.",
+      "summary": "Commit a835fe8f90bab295f3604cabc94f934a5f2572ff introduced a truncation instead of proper rounding, causing monetary values to be incorrectly truncated rather than rounded to the nearest minor unit.",
+      "recommended_verification": "Run unit tests verifying the evaluate function with floating-point amounts that result in fractional minor units, ensuring standard round-half-to-even behavior.",
+      "ruled_out_commits": [
+        {
+          "sha": "10ceb3776e7bb3b02337fec10d3a6f3840575563",
+          "reason": "Uses parentheses around round(amount * 100), which preserves the exact same rounding behavior and does not cause the observed truncation discrepancy."
+        },
+        {
+          "sha": "151b8b7ebc2b717cdd039b0b11ded94dbc4d5f4c",
+          "reason": "Modifies cache TTL rather than evaluation or rounding logic."
+        },
+        {
+          "sha": "e18cb4f8e8cbf58abfc8151c3b8caecdef72cba0",
+          "reason": "Modifies cache TTL rather than evaluation or rounding logic."
+        },
+        {
+          "sha": "c8d6c67c62a9d3de2898998daebde38bea8193f9",
+          "reason": "Only adds a comment inside a metric recording function and does not affect calculation logic."
+        }
+      ],
+      "suggested_fix_diff": "",
+      "guard_test_diff": "",
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 3900,
+      "max_output_tokens": 2600,
+      "usage": {
+        "input_tokens": 1630,
+        "output_tokens": 709,
+        "total_tokens": 2339
+      },
+      "attribution_status": "validated_reference",
+      "draft_warnings": [
+        "suggested_fix_diff: invalid unified diff; omitted",
+        "guard_test_diff: invalid unified diff; omitted"
+      ],
+      "draft_status": "Suggested only; not applied or executed"
+    },
+    "llm_top1": true,
+    "exact_reference": true,
+    "heuristic_top1": false,
+    "seconds": 5.06
+  },
+  {
+    "id": "bug-24",
+    "ground_truth": {
+      "sha": "028982b828521265f97301237de6b21f2300ae5c",
+      "file": "src/delivery/module_6a7c51.py",
+      "line": 176
+    },
+    "heuristic_sha": "8c4277144eea9f195a0260f2286111c073d55c13",
+    "detection": {
+      "detected": true,
+      "classification": "business_regression",
+      "summary": "Carrier routing regression where premium orders are downgraded to economy.",
+      "reason": "Observation e1 shows a sample size of 1200 premium input conditions resulting in economy observed outcomes instead of the expected express.",
+      "evidence_refs": [
+        "e1"
+      ],
+      "accounts_review": [],
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 1334,
+      "max_output_tokens": 1000,
+      "usage": {
+        "input_tokens": 753,
+        "output_tokens": 89,
+        "total_tokens": 842
+      }
+    },
+    "result": {
+      "suspect_commit_sha": "028982b828521265f97301237de6b21f2300ae5c",
+      "file": "src/delivery/module_6a7c51.py",
+      "line": 176,
+      "defect_explanation": "The commit unconditionally returns 'economy' for delivery routing regardless of the premium status, which directly causes premium shipments to be routed as economy instead of express.",
+      "summary": "Commit 028982b828521265f97301237de6b21f2300ae5c changes the carrier routing evaluation to always return economy.",
+      "recommended_verification": "Run integration tests verifying carrier routing for premium inputs.",
+      "ruled_out_commits": [
+        {
+          "sha": "53e631ec546a93c9abbb36fca2a90e36a18bedff",
+          "reason": "Modifies cache TTL which is unrelated to carrier routing expectations."
+        },
+        {
+          "sha": "8c4277144eea9f195a0260f2286111c073d55c13",
+          "reason": "Only adds a comment inside record_metric."
+        },
+        {
+          "sha": "b175019eb7b1646e82928a8714514bc71c876f1e",
+          "reason": "Modifies cache TTL in a different module, unrelated to the observation."
+        },
+        {
+          "sha": "d14d932cfe1010d84940d507d0616e1cd4dd8c4e",
+          "reason": "Preserves correctness by keeping the exact same ternary logic wrapped in parentheses."
+        }
+      ],
+      "suggested_fix_diff": "",
+      "guard_test_diff": "",
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 3943,
+      "max_output_tokens": 2600,
+      "usage": {
+        "input_tokens": 1628,
+        "output_tokens": 570,
+        "total_tokens": 2198
+      },
+      "attribution_status": "validated_reference",
+      "draft_warnings": [
+        "suggested_fix_diff: invalid unified diff; omitted",
+        "guard_test_diff: invalid unified diff; omitted"
+      ],
+      "draft_status": "Suggested only; not applied or executed"
+    },
+    "llm_top1": true,
+    "exact_reference": true,
+    "heuristic_top1": false,
+    "seconds": 4.34
+  },
+  {
+    "id": "bug-25",
+    "ground_truth": {
+      "sha": "dd287a4b7c95ff896bbada1269279b6cebfdeada",
+      "file": "src/delivery/module_2f04ce.py",
+      "line": 132
+    },
+    "heuristic_sha": "b459c1577eb19a31f26f8e5364290ac0ccf1351c",
+    "detection": {
+      "detected": false,
+      "classification": "healthy",
+      "summary": "Mature retention cohorts observed over 12 days show consistent outcomes matching expected behavior across the evaluated sample size.",
+      "reason": "The observed outcome matches the expected outcome for mature retention cohorts, indicating healthy system performance with no detected business regressions or anomalies.",
+      "evidence_refs": [
+        "e1"
+      ],
+      "accounts_review": [],
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 1329,
+      "max_output_tokens": 1000,
+      "usage": {
+        "input_tokens": 746,
+        "output_tokens": 100,
+        "total_tokens": 846
+      }
+    },
+    "result": {
+      "suspect_commit_sha": "dd287a4b7c95ff896bbada1269279b6cebfdeada",
+      "file": "src/delivery/module_2f04ce.py",
+      "line": 132,
+      "defect_explanation": "The change in module_2f04ce.py alters the evaluation condition from days >= 30 to days <= 30. Given the observation condition of days=12, the old logic correctly returned false for a mature cohort check (< 30 days), whereas the new logic incorrectly returns true (12 <= 30), reproducing the observed retention cohort failure.",
+      "summary": "Commit dd287a4b7c95ff896bbada1269279b6cebfdeada introduced an incorrect boundary condition inversion for cohort evaluation.",
+      "recommended_verification": "Verify that evaluate(days) correctly checks for mature thresholds (>= 30) rather than (<= 30).",
+      "ruled_out_commits": [
+        {
+          "sha": "018a8d474a15ebb4e83d71d140eeeba38f4b9706",
+          "reason": "Changing cache TTL does not alter evaluation outcomes for 12-day cohorts."
+        },
+        {
+          "sha": "1b1f18cc4c088138487224eee89e5bb379278ca5",
+          "reason": "Adding parentheses around a boolean expression is a correctness-preserving refactor."
+        },
+        {
+          "sha": "6eb5d408659bd26d7b32d4a789c637bfe81b3236",
+          "reason": "Adding string strip does not affect numeric evaluation for 12-day cohorts."
+        },
+        {
+          "sha": "b459c1577eb19a31f26f8e5364290ac0ccf1351c",
+          "reason": "Adding a comment to record_metric does not alter functional evaluation logic."
+        }
+      ],
+      "suggested_fix_diff": "--- src/delivery/module_2f04ce.py\n+++ src/delivery/module_2f04ce.py\n@@ -131,2 +131,2 @@\n def evaluate(days):\n-    return days <= 30\n+    return days >= 30",
+      "guard_test_diff": "--- tests/test_module_2f04ce.py\n+++ tests/test_module_2f04ce.py\n@@ -0,0 +1,3 @@\n+def test_evaluate():\n+    assert evaluate(12) is False\n+    assert evaluate(30) is True",
+      "provider": "Vertex AI / gemini-3.5-flash-lite",
+      "cached": false,
+      "input_characters": 3844,
+      "max_output_tokens": 2600,
+      "usage": {
+        "input_tokens": 1602,
+        "output_tokens": 704,
+        "total_tokens": 2306
+      },
+      "attribution_status": "validated_reference",
+      "draft_status": "Suggested only; not applied or executed"
+    },
+    "llm_top1": true,
+    "exact_reference": true,
+    "heuristic_top1": false,
+    "seconds": 4.6
+  }
+]

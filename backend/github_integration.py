@@ -64,9 +64,12 @@ def fetch_commits(repo):
                         "filename": f["filename"],
                         "additions": f["additions"],
                         "deletions": f["deletions"],
-                        "patch": redact(f.get("patch", "Diff unavailable for this file"))[:4000],
+                        "patch": redact(
+                            f.get("patch", "Diff unavailable for this file")
+                        )[:4000],
                     }
-                    for f in detail.get("files", [])[:30] if safe_file(f["filename"])
+                    for f in detail.get("files", [])[:30]
+                    if safe_file(f["filename"])
                 ],
                 "source": "GitHub",
                 "repo": repo,

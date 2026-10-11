@@ -234,6 +234,7 @@ function App() {
         ? data?.history.find((x) => x.id === selectedId)
         : null) || data?.finding,
     active = data?.status === "active" && Boolean(f),
+    attribution = investigation || f?.investigation,
     publicAccess = data?.deployment?.access === "public";
   const nav = [
     ["overview", LayoutDashboard, "Overview"],
@@ -280,7 +281,9 @@ function App() {
             luma-goods
             <small>
               {data?.deployment?.environment === "Cloud Run"
-                ? "Cloud Run / private"
+                ? publicAccess
+                  ? "Cloud Run / public demo"
+                  : "Cloud Run / owner"
                 : "Local / development"}
             </small>
           </span>
@@ -484,7 +487,11 @@ function App() {
                           ? "Active incident"
                           : ["resolved", "recovered"].includes(data.status)
                             ? "Reviewed"
-                            : "No active incidents"}
+                            : data.status === "unassessed"
+                              ? "AI assessment unavailable"
+                              : data.status === "baseline"
+                                ? "Baseline data; not assessed"
+                                : "No active incidents"}
                       </div>
                       <span>
                         Synthetic data. No production integrations are
@@ -569,6 +576,11 @@ function App() {
                         const finding = data.history.find(
                           (x) => x.scenario === s.id,
                         );
+                        const candidate = finding?.commits?.find(
+                          (c) =>
+                            c.sha ===
+                            finding?.investigation?.suspect_commit_sha,
+                        );
                         const running = finding?.status === "active";
                         return (
                           <section className="issue-evidence-card" key={s.id}>
@@ -636,8 +648,11 @@ function App() {
                               </span>
                               <span>
                                 {finding
-                                  ? Math.round(finding.score * 100) +
-                                    "/100 candidate score"
+                                  ? finding.detection_provider?.startsWith(
+                                      "Vertex",
+                                    )
+                                    ? "AI decision"
+                                    : "Unassessed"
                                   : "Synthetic data"}
                               </span>
                             </div>
@@ -696,12 +711,12 @@ function App() {
                                 )}
                               </div>
                               <p>
-                                {finding?.commits?.[0]?.message ||
+                                {candidate?.message ||
                                   "Run the scenario to evaluate related commits."}
                               </p>
-                              {finding?.commits?.[0] && (
+                              {candidate && (
                                 <code className="file-path">
-                                  {finding.commits[0].files[0].filename}
+                                  {candidate.files[0]?.filename}
                                 </code>
                               )}
                             </div>
@@ -879,9 +894,9 @@ function App() {
                   </div>
                   <div className="bottom-note">
                     {data?.deployment?.durable
-                      ? "Private Cloud Run · durable checkpoints"
+                      ? "Cloud Run · durable checkpoints"
                       : "Local demo · SQLite state"}{" "}
-                    · heuristic commit ranking
+                    · Gemini detection and attribution
                     <span>
                       Last refreshed{" "}
                       {new Date(data.updated_at).toLocaleTimeString()}
@@ -944,10 +959,12 @@ function App() {
                       <strong className="mono">{f.cause}</strong>
                     </div>
                     <div>
-                      <small>Candidate score</small>
+                      <small>AI code attribution</small>
                       <strong>
-                        {Math.round(f.score * 100)}
-                        <em> / 100</em>
+                        {attribution?.attribution_status ===
+                        "validated_reference"
+                          ? "Reference validated"
+                          : "Pending"}
                       </strong>
                     </div>
                   </div>
@@ -962,7 +979,7 @@ function App() {
                             </h2>
                             <p>
                               Provider:{" "}
-                              {investigation?.provider || f.reasoning_provider}
+                              {attribution?.provider || f.reasoning_provider}
                             </p>
                           </div>
                           <button
@@ -979,36 +996,102 @@ function App() {
                           </button>
                         </div>
                         <p className="briefing">
-                          {investigation?.summary || f.summary}
+                          {attribution?.summary || f.summary}
                         </p>
-                        {investigation?.classification && (
+                        {attribution?.classification && (
                           <p className="muted">
                             Classification:{" "}
-                            {investigation.classification.replaceAll("_", " ")}
+                            {attribution.classification.replaceAll("_", " ")}
                           </p>
                         )}
-                        {investigation?.limitation && (
-                          <p className="muted">{investigation.limitation}</p>
+                        {attribution?.limitation && (
+                          <p className="muted">{attribution.limitation}</p>
                         )}
-                        {investigation?.usage?.total_tokens && (
+                        {attribution?.usage?.total_tokens && (
                           <p className="muted">
-                            {investigation.cached
+                            {attribution.cached
                               ? "Cached analysis"
-                              : `${investigation.usage.total_tokens.toLocaleString()} tokens used`}
+                              : `${attribution.usage.total_tokens.toLocaleString()} tokens used`}
                           </p>
                         )}
-                        {investigation?.recommended_verification && (
+                        {attribution?.recommended_verification && (
                           <p className="verification">
                             Verification step:{" "}
-                            {investigation.recommended_verification}
+                            {attribution.recommended_verification}
                           </p>
                         )}
                         <div className="confidence-note">
-                          <ShieldCheck size={15} />
-                          {f.confidence_label}. Review the measurements before
-                          accepting a candidate cause.
+                          <ShieldCheck size={15} />A validated code reference is
+                          a candidate, not proof of causation. Review the
+                          measurements before accepting a candidate cause.
                         </div>
                       </section>
+                      <section className="panel investigation-panel">
+                        <h2>LLM anomaly decision</h2>
+                        <p className="muted">
+                          {f.detection_provider || "Not assessed"}
+                        </p>
+                        <p>
+                          {f.detection?.reason ||
+                            "No Gemini decision is stored for this window."}
+                        </p>
+                        <p className="muted">
+                          Evidence references:{" "}
+                          {f.detection?.evidence_refs?.join(", ") || "None"}.
+                          SQL measures outcomes; Gemini makes the decision.
+                        </p>
+                      </section>
+                      {attribution?.attribution_status ===
+                        "validated_reference" && (
+                        <section className="panel investigation-panel">
+                          <h2>AI candidate cause</h2>
+                          <code>
+                            {attribution.suspect_commit_sha.slice(0, 12)} ·{" "}
+                            {attribution.file}:{attribution.line}
+                          </code>
+                          <p>{attribution.defect_explanation}</p>
+                          <p className="muted">
+                            The cited line exists in the supplied diff. This
+                            does not establish causation.
+                          </p>
+                          <h3>Other commits</h3>
+                          {attribution.ruled_out_commits?.map((c) => (
+                            <p key={c.sha}>
+                              <code>{c.sha.slice(0, 7)}</code> {c.reason}
+                            </p>
+                          ))}
+                        </section>
+                      )}
+                      {attribution && (
+                        <section className="panel investigation-panel">
+                          <h2>Suggested fix and guard test</h2>
+                          <p className="muted">
+                            AI drafts for review. Never applied or executed.
+                            Test compatibility has not been verified.
+                          </p>
+                          {attribution.suggested_fix_diff && (
+                            <>
+                              <h3>Suggested fix</h3>
+                              <pre className="draft-diff">
+                                {attribution.suggested_fix_diff}
+                              </pre>
+                            </>
+                          )}
+                          {attribution.guard_test_diff && (
+                            <>
+                              <h3>Guard test</h3>
+                              <pre className="draft-diff">
+                                {attribution.guard_test_diff}
+                              </pre>
+                            </>
+                          )}
+                          {attribution.draft_warnings?.map((w) => (
+                            <p className="muted" key={w}>
+                              {w}
+                            </p>
+                          ))}
+                        </section>
+                      )}
                       <section className="panel investigation-panel">
                         <h2>Measurements</h2>
                         {f.evidence.map((e, i) => (
@@ -1063,12 +1146,23 @@ function App() {
                           <div>
                             <h2>Candidate commits</h2>
                             <p>
-                              Ranked by commit time, changed files, and diff
-                              terms. These commits are synthetic.
+                              Gemini compares all eligible diffs. The heuristic
+                              is retained only as an evaluation baseline.
                             </p>
                           </div>
                         </div>
-                        {f.commits?.slice(0, 3).map((c, i) => (
+                        {(attribution?.suspect_commit_sha
+                          ? [...(f.commits || [])].sort(
+                              (x, y) =>
+                                Number(
+                                  y.sha === attribution.suspect_commit_sha,
+                                ) -
+                                Number(
+                                  x.sha === attribution.suspect_commit_sha,
+                                ),
+                            )
+                          : f.commits || []
+                        ).map((c, i) => (
                           <div
                             className="suspect-commit"
                             key={c.repo + ":" + c.sha}
@@ -1076,14 +1170,24 @@ function App() {
                             <div className="suspect-title">
                               <code>{c.sha.slice(0, 7)}</code>
                               <strong>{c.message}</strong>
-                              <span>{Math.round(c.score * 100)}/100</span>
+                              {c.sha === attribution?.suspect_commit_sha && (
+                                <span className="badge neutral">
+                                  AI candidate
+                                </span>
+                              )}
                             </div>
-                            <div className="commit-reasons">
-                              {c.reasons.map((r) => (
-                                <span key={r}>{r}</span>
-                              ))}
-                            </div>
-                            {i === 0 && <Diff commit={c} />}
+                            {(c.sha === attribution?.suspect_commit_sha ||
+                              i === 0) && (
+                              <Diff
+                                commit={c}
+                                highlight={
+                                  attribution?.attribution_status ===
+                                  "validated_reference"
+                                    ? attribution
+                                    : null
+                                }
+                              />
+                            )}
                           </div>
                         ))}
                       </section>
@@ -1382,9 +1486,9 @@ function App() {
                   <div className="info-block">
                     <h2>Release correlation</h2>
                     <p>
-                      The detector ranks candidate commits by commit time,
-                      service file paths, and diff terms. The score does not
-                      establish causation.
+                      Gemini compares eligible code changes with business
+                      measurements. A candidate reference does not establish
+                      causation.
                     </p>
                   </div>
                 </>
@@ -1560,6 +1664,42 @@ function App() {
                       </button>
                     )}
                   </div>
+                  <section className="panel integration-settings">
+                    <h2>Accounts flagged for review</h2>
+                    <p className="muted">
+                      Gemini reviews repeated failed or pending transfers
+                      recorded as successful credits. Flags are leads for
+                      review, not fraud findings. No accounts are blocked.
+                    </p>
+                    {data.banking.account_reviews?.filter(
+                      (r) => r.flag_for_review,
+                    ).length ? (
+                      data.banking.account_reviews
+                        .filter((r) => r.flag_for_review)
+                        .map((r) => {
+                          const e = data.banking.accounts?.find(
+                            (a) => a.account_id === r.account_id,
+                          );
+                          return (
+                            <div className="account-review" key={r.account_id}>
+                              <strong>{r.account_id}</strong>
+                              <p>{r.reason}</p>
+                              <p>
+                                {e?.mismatch_count} mismatches ·{" "}
+                                {money((e?.unbacked_cents || 0) / 100, 2)}{" "}
+                                unbacked credits
+                              </p>
+                              <code>{r.transaction_ids.join(", ")}</code>
+                            </div>
+                          );
+                        })
+                    ) : (
+                      <p>
+                        No AI account flags are available. Run the banking
+                        assessment to evaluate the evidence.
+                      </p>
+                    )}
+                  </section>
                   <section className="panel table-panel">
                     <div className="panel-head">
                       <h2>Settlement evidence</h2>
@@ -1802,13 +1942,13 @@ function App() {
                     )}
                   </section>
                   <div className="info-block">
-                    <h2>Commit ranking</h2>
+                    <h2>Heuristic evaluation baseline</h2>
                     <p>
-                      The score uses commit time (30%), service file overlap
-                      (30%), relevant diff terms (25%), and affected segment
-                      terms (15%). Production attribution also requires a
-                      verified deployment commit and the time the metric
-                      changed.
+                      This optional comparison score uses commit time (30%),
+                      service file overlap (30%), relevant diff terms (25%), and
+                      affected segment terms (15%). Production attribution also
+                      requires a verified deployment commit and the time the
+                      metric changed.
                     </p>
                   </div>
                 </>
@@ -2263,7 +2403,25 @@ function IncidentCard({ finding: f, onClick }) {
     </button>
   );
 }
-function Diff({ commit }) {
+function numberedDiff(patch) {
+  let current = null;
+  return patch.split("\n").map((text) => {
+    const h = text.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
+    if (h) {
+      current = Number(h[1]);
+      return { text, newLine: null };
+    }
+    if (
+      current === null ||
+      text.startsWith("-") ||
+      text.startsWith("\\") ||
+      !["+", " "].includes(text[0])
+    )
+      return { text, newLine: null };
+    return { text, newLine: current++ };
+  });
+}
+function Diff({ commit, highlight }) {
   return (
     <div className="diff-files">
       {commit.files.map((file) => (
@@ -2274,18 +2432,26 @@ function Diff({ commit }) {
             <span className="diff-remove">−{file.deletions}</span>
           </div>
           <pre>
-            {file.patch.split("\n").map((line, i) => (
+            {numberedDiff(file.patch).map(({ text: line, newLine }, i) => (
               <span
                 className={
-                  line.startsWith("+")
+                  (highlight?.suspect_commit_sha === commit.sha &&
+                  highlight.file === file.filename &&
+                  highlight.line === newLine
+                    ? "ai-line "
+                    : "") +
+                  (line.startsWith("+")
                     ? "added"
                     : line.startsWith("-")
                       ? "removed"
-                      : "context"
+                      : "context")
                 }
                 key={i}
               >
-                {line + "\n"}
+                <>
+                  <span className="line-number">{newLine ?? ""}</span>
+                  {line + "\n"}
+                </>
               </span>
             ))}
           </pre>

@@ -26,7 +26,7 @@ Development: run the Python server and `npm run dev` in separate terminals. Vite
 
 1. Run **Checkout regression**. The generator persists 6,000 sessions for the current simulated hour and compares them with 30,000 historical sessions across 30 days.
 2. Open the issue. Inspect affected segments, statistical evidence, the suspect commit, and its diff.
-3. Click **Investigate** for a deterministic evidence explanation. The provider label is explicit. Optional Vertex AI support requires explicit configuration below.
+3. Gemini assesses the collected business measurements. Click **Investigate** for a candidate commit, file, and validated diff line, ruled-out commits, and unapplied fix/test drafts. Without explicitly configured Vertex, the window remains unassessed; there is no rule-based detection fallback.
 4. Select **Mark resolved**, **Ignore**, or **Not an issue**. These actions change review state only. Source events, bank statuses, and ledger postings remain unchanged. Select **Reopen** to investigate again.
 5. Run **Promotion stacking** or **Delivery delays** to evaluate other business regressions. Resolve the active incident before launching the next one. Historical incidents remain accessible.
 6. Export a JSON incident report or review the persistent activity log.
@@ -36,7 +36,7 @@ The written PDF contains the current demo guide, seller and banking examples, co
 ## What works
 
 - Responsive React developer dashboard, issue search and sorting, release history, impact graph, activity log, report exports
-- Real SQLite persistence, repeatable synthetic event generation and threshold-based detection
+- Real SQLite persistence, repeatable synthetic event generation and Gemini anomaly detection
 - Red regression states and green healthy/reviewed states
 - Banking settlement reconciliation with integer-cent postings and and duplicate/missing credit checks
 - Segment isolation, two-proportion standard-error comparison, negative-margin detection, mature retention cohort comparison
@@ -51,7 +51,7 @@ The written PDF contains the current demo guide, seller and banking examples, co
 
 ## Honest boundaries
 
-The traffic, demo releases, diff fixtures, and customer outcomes are synthetic. The default investigator uses evidence rules, not an LLM. External events are stored separately from demo analytics. GitHub-imported commits are not falsely attached to fictional demo incidents. The real-commit ranking API requires a supplied anomaly onset and service scenario. Production attribution also requires mapping deployed versions to commit SHAs.
+The traffic, demo releases, diff fixtures, and customer outcomes are synthetic. Gemini performs anomaly detection and code attribution when explicitly configured; otherwise windows remain unassessed. External events are stored separately from demo analytics. GitHub-imported commits are not falsely attached to fictional demo incidents. The real-commit ranking API requires a supplied anomaly onset and service scenario. Production attribution also requires mapping deployed versions to commit SHAs.
 
 Commerce financial numbers are scenario projections. The banking amount is the observed discrepancy in synthetic ledger records. Seller projections assume 120 checkout starts/day and an $82 order value. They are not actual losses or proven savings. Contribution margin uses an assumed 64% product cost, with additive 45% coupon discounts. Retention uses synthetic mature 30-day outcomes and scales the delayed-cohort share to 120 seller checkout starts/day, 30 days/month, and twelve months/year. Confidence scores rank hypotheses and are not causal probabilities. The checkout test assumes independent Bernoulli outcomes, and production baselines need time-of-day controls, multiplicity correction, seasonality and minimum-volume policies.
 
@@ -111,3 +111,9 @@ The [public demo](https://impactguard-182850660018.us-central1.run.app/) is depl
 The current written document is generated with `scripts/create-product-document.py` and ReportLab. The older deck and video are historical assets; their remediation demonstration is no longer current. `scripts/create-demo-video.py` uses the captured screenshots in `docs/demo-assets/`, macOS `say`, and FFmpeg. The deck authoring script uses the Codex bundled presentation runtime and requires `RUNTIME_NODE_MODULES`, `PRESENTATION_SKILL_DIR`, and `RUNTIME_PYTHON`. These authoring tools are not needed to run the web app.
 
 An optional GitHub Actions configuration is included at `docs/github-ci-template.yml`. To enable it, copy it to `.github/workflows/ci.yml` using a credential authorized to manage workflows. The same build and tests run locally with `npm run build` and `npm test`.
+
+## AI detection and attribution
+
+Gemini makes the anomaly decision from measurements and assigns the issue category. Arithmetic and ledger reconciliation remain reproducible SQL/integer operations. It compares all bounded eligible candidate diffs; the old heuristic is retained only as an evaluation baseline. Unknown SHA/file/line references are rejected. A valid citation is not causal proof. Banking account flags request human review, never blocking or asserting fraud. Suggested fixes and guard tests are displayed only, never applied or executed.
+
+The controlled development benchmark achieved 25/25 validated Gemini attributions versus 1/25 for the keyword baseline. It uses deliberately keyword-heavy decoys and does not establish production accuracy. [Evaluation artifacts](output/evaluation/README.md) include the dataset, all responses, token counts, and the earlier diagnostic run.

@@ -1,0 +1,157 @@
+{
+  "cases": 6,
+  "correct": 6,
+  "limitation": "Six hand-authored controls, not production false-positive measurement. A planned campaign is included as healthy; alternative classifications can be reasonable.",
+  "results": [
+    {
+      "case": "healthy-stable",
+      "expected_classification": "healthy",
+      "expected_detected": false,
+      "actual": {
+        "detected": false,
+        "classification": "healthy",
+        "summary": "System metrics remain stable with no anomalies detected.",
+        "reason": "Baseline and recent session volumes as well as completion rates show negligible variance and high stability. Collection is complete.",
+        "evidence_refs": [
+          "e1"
+        ],
+        "accounts_review": [],
+        "provider": "Vertex AI / gemini-3.5-flash-lite",
+        "cached": false,
+        "input_characters": 1055,
+        "max_output_tokens": 1000,
+        "usage": {
+          "input_tokens": 565,
+          "output_tokens": 85,
+          "total_tokens": 650
+        }
+      },
+      "correct": true
+    },
+    {
+      "case": "healthy-volume",
+      "expected_classification": "healthy",
+      "expected_detected": false,
+      "actual": {
+        "detected": false,
+        "classification": "healthy",
+        "summary": "Business metrics show healthy growth with stable completion rates during a planned campaign.",
+        "reason": "Observation e1 indicates a planned advertising campaign resulting in increased session volume from 10000 to 15000 while maintaining a stable completion rate of 0.6.",
+        "evidence_refs": [
+          "e1"
+        ],
+        "accounts_review": [],
+        "provider": "Vertex AI / gemini-3.5-flash-lite",
+        "cached": false,
+        "input_characters": 1095,
+        "max_output_tokens": 1000,
+        "usage": {
+          "input_tokens": 569,
+          "output_tokens": 108,
+          "total_tokens": 677
+        }
+      },
+      "correct": true
+    },
+    {
+      "case": "healthy-ledger",
+      "expected_classification": "healthy",
+      "expected_detected": false,
+      "actual": {
+        "detected": false,
+        "classification": "healthy",
+        "summary": "Ledger metrics are normal with complete collection and zero unbacked credits.",
+        "reason": "All application successes match bank settled counts, collection is complete, and unbacked credit count is zero.",
+        "evidence_refs": [
+          "e1"
+        ],
+        "accounts_review": [],
+        "provider": "Vertex AI / gemini-3.5-flash-lite",
+        "cached": false,
+        "input_characters": 1028,
+        "max_output_tokens": 1000,
+        "usage": {
+          "input_tokens": 555,
+          "output_tokens": 89,
+          "total_tokens": 644
+        }
+      },
+      "correct": true
+    },
+    {
+      "case": "traffic-spike",
+      "expected_classification": "traffic_anomaly",
+      "expected_detected": true,
+      "actual": {
+        "detected": true,
+        "classification": "traffic_anomaly",
+        "summary": "Massive influx in user sessions with stable completion rate",
+        "reason": "Traffic spike detected with a tenfold increase in recent sessions while completion rate remains steady at baseline levels. This indicates a traffic anomaly rather than a business regression.",
+        "evidence_refs": [
+          "e1"
+        ],
+        "accounts_review": [],
+        "provider": "Vertex AI / gemini-3.5-flash-lite",
+        "cached": false,
+        "input_characters": 1071,
+        "max_output_tokens": 1000,
+        "usage": {
+          "input_tokens": 568,
+          "output_tokens": 98,
+          "total_tokens": 666
+        }
+      },
+      "correct": true
+    },
+    {
+      "case": "security-requests",
+      "expected_classification": "security_signal",
+      "expected_detected": true,
+      "actual": {
+        "detected": true,
+        "classification": "security_signal",
+        "summary": "Massive surge in blocked requests due to credential stuffing signatures.",
+        "reason": "Observation e1 shows a significant increase in blocked requests from 5 to 5000 attributed to credential stuffing signatures, while checkout rates remain unchanged and no confirmed compromise occurred.",
+        "evidence_refs": [
+          "e1"
+        ],
+        "accounts_review": [],
+        "provider": "Vertex AI / gemini-3.5-flash-lite",
+        "cached": false,
+        "input_characters": 1090,
+        "max_output_tokens": 1000,
+        "usage": {
+          "input_tokens": 560,
+          "output_tokens": 106,
+          "total_tokens": 666
+        }
+      },
+      "correct": true
+    },
+    {
+      "case": "missing-events",
+      "expected_classification": "data_quality",
+      "expected_detected": true,
+      "actual": {
+        "detected": true,
+        "classification": "data_quality",
+        "summary": "Massive drop in purchase events despite stable session volume due to a collection gap.",
+        "reason": "Recent purchase events dropped from 6000 to 20 while baseline and recent sessions remained at 10000, and settled order records remain at 6000, indicating an instrumentation/collection gap rather than a business regression.",
+        "evidence_refs": [
+          "e1"
+        ],
+        "accounts_review": [],
+        "provider": "Vertex AI / gemini-3.5-flash-lite",
+        "cached": false,
+        "input_characters": 1092,
+        "max_output_tokens": 1000,
+        "usage": {
+          "input_tokens": 579,
+          "output_tokens": 125,
+          "total_tokens": 704
+        }
+      },
+      "correct": true
+    }
+  ]
+}

@@ -5,8 +5,16 @@ def format_finding(finding):
     if not finding:
         return finding
     result = dict(finding)
+    if result.get("detection_provider"):
+        result["confidence_label"] = (
+            "A validated code reference is a candidate cause, not proof of causation"
+        )
+        return result
     scenario = result.get("scenario")
-    result.setdefault("classification", "operational_incident" if scenario == "delivery" else "business_regression")
+    result.setdefault(
+        "classification",
+        "operational_incident" if scenario == "delivery" else "business_regression",
+    )
     if scenario == "checkout":
         result.update(
             title="Checkout completion rate decreased",

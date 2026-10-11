@@ -1,0 +1,11 @@
+{
+  "dataset_version": "planted-v1",
+  "model": "gemini-3.5-flash-lite",
+  "cases": 25,
+  "llm_top1": 9,
+  "heuristic_top1": 1,
+  "validated_exact_reference": 9,
+  "errors": 6,
+  "total_tokens": 59076,
+  "limitation": "Synthetic, controlled business contracts and a keyword-heavy logging decoy per case. Not production performance. No training or tuning on returned answers; all attempts, abstentions, invalid citations and errors count in the denominator."
+}

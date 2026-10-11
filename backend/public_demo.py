@@ -13,13 +13,31 @@ def engine_for(case="checkout"):
         raise ValueError("Unsupported demo scenario")
     if case not in _ENGINES:
         e = Engine(":memory:")
-        e.launch(case)
+        e.launch(case, assess=False)
         _ENGINES[case] = e
     return _ENGINES[case]
 
 
-def dashboard(case="checkout"):
+def dashboard(case="checkout", real=None):
     data = engine_for(case).dashboard()
+    if real:
+        template = real.get("public_ai_templates", {}).get(case, {})
+        decision = template.get("detection")
+        if decision:
+            f = data["finding"]
+            f.update(
+                detection=decision,
+                detection_provider=decision["provider"],
+                reasoning_provider=decision["provider"],
+                classification=decision["classification"],
+                summary=decision["summary"],
+                status="active" if decision["detected"] else "healthy",
+                investigation=template,
+            )
+            if template.get("attribution_status") == "validated_reference":
+                f["commit_sha"] = template["suspect_commit_sha"]
+            data.update(status=f["status"], history=[f])
+            data["banking"]["account_reviews"] = decision.get("accounts_review", [])
     data["deployment"].update(access="public", public_preview=True)
     return data
 
@@ -50,7 +68,17 @@ def prepare(real):
     for case in CASES:
         e = Engine(":memory:")
         try:
-            results[case] = investigate(e.launch(case)["finding"])
+            f = e.launch(case)["finding"]
+            result = (
+                investigate(f)
+                if f["detection"]["detected"]
+                else {
+                    "provider": f["detection"]["provider"],
+                    "summary": f["summary"],
+                    "attribution_status": "inconclusive",
+                }
+            )
+            results[case] = {**result, "detection": f["detection"], "schema_version": 2}
         finally:
             e.db.close()
     e = Engine(":memory:")
@@ -67,6 +95,10 @@ def prepare(real):
                     "recommended_verification",
                     "limitation",
                     "usage",
+                    "detected",
+                    "reason",
+                    "evidence_refs",
+                    "accounts_review",
                 )
             }
     finally:

@@ -2309,3 +2309,28 @@ pre {
   font-size: 12px;
   line-height: 1.6;
 }
+.diff-file pre .ai-line {
+  background: #fff1bd;
+  box-shadow: inset 3px 0 #b48621;
+  color: #47350d;
+}
+.diff-file pre .line-number {
+  display: inline-block;
+  width: 38px;
+  color: #7a8390;
+  user-select: none;
+}
+.draft-diff {
+  padding: 16px;
+  background: #f6f8fa;
+  border: 1px solid #dfe4ec;
+  border-radius: 6px;
+  overflow: auto;
+  font-size: 12px;
+  line-height: 1.7;
+  white-space: pre;
+}
+.account-review {
+  padding: 16px 0;
+  border-top: 1px solid #e4e8ee;
+}

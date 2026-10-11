@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 from engine import Engine
 
 
@@ -9,7 +10,33 @@ class EngineTests(unittest.TestCase):
     def tearDown(self):
         self.e.db.close()
 
-    def test_checkout_detection_and_recovery(self):
+    def test_invalid_model_decision_rolls_back_window(self):
+        before = self.e.get("status")
+        before_stats = self.e.stats("live")
+        with patch(
+            "investigator.detect_anomaly", side_effect=ValueError("Invalid reference")
+        ):
+            with self.assertRaises(ValueError):
+                self.e.launch("checkout")
+        self.assertEqual(self.e.get("status"), before)
+        self.assertEqual(self.e.stats("live"), before_stats)
+        self.assertFalse(self.e.db.in_transaction)
+
+    def test_model_can_return_healthy_for_injected_window(self):
+        decision = {
+            "provider": "Vertex AI test",
+            "detected": False,
+            "classification": "healthy",
+            "summary": "No issue",
+            "reason": "Control",
+            "evidence_refs": [],
+        }
+        with patch("investigator.detect_anomaly", return_value=decision):
+            result = self.e.launch("checkout")
+        self.assertEqual(result["status"], "healthy")
+        self.assertEqual(result["finding"]["detection"]["detected"], False)
+
+    def test_checkout_measurements_and_manual_review(self):
         d = self.e.launch("checkout")
         f = d["finding"]
         self.assertGreater(f["z_score"], 5)
@@ -23,7 +50,8 @@ class EngineTests(unittest.TestCase):
         d = self.e.action("resolve")
         self.assertEqual(d["status"], "resolved")
         self.assertEqual(self.e.stats("live"), before)
-        with self.assertRaises(ValueError): self.e.action("recover")
+        with self.assertRaises(ValueError):
+            self.e.action("recover")
 
     def test_promotion_negative_margin(self):
         f = self.e.launch("promotion")["finding"]
@@ -65,12 +93,18 @@ class EngineTests(unittest.TestCase):
         f = self.e.launch("banking")["finding"]
         self.assertEqual(self.e.bank_summary()["mismatches"], 200)
         self.assertGreater(f["exposure"], 0)
-        self.assertEqual(f["commits"][0]["sha"][:7], "e921bd0")
-        original = self.e.db.execute("SELECT SUM(amount_cents) FROM ledger").fetchone()[0]
+        self.assertEqual(f["heuristic_commits"][0]["sha"][:7], "e921bd0")
+        self.assertEqual(f["detection"]["detected"], None)
+        original = self.e.db.execute("SELECT SUM(amount_cents) FROM ledger").fetchone()[
+            0
+        ]
         self.e.action("not_issue")
         self.assertEqual(self.e.bank_summary()["mismatches"], 200)
         self.assertEqual(self.e.bank_summary()["reversals"], 0)
-        self.assertEqual(self.e.db.execute("SELECT SUM(amount_cents) FROM ledger").fetchone()[0], original)
+        self.assertEqual(
+            self.e.db.execute("SELECT SUM(amount_cents) FROM ledger").fetchone()[0],
+            original,
+        )
 
     def test_reconciliation_detects_duplicate_and_missing_postings(self):
         self.e.launch("banking")
@@ -82,7 +116,7 @@ class EngineTests(unittest.TestCase):
             (tx["id"], tx["amount_cents"]),
         )
         self.e.db.execute(
-            "INSERT INTO bank_transactions VALUES ('missing','2026-10-10','settled','success',1000)"
+            "INSERT INTO bank_transactions(id,timestamp,bank_status,app_status,amount_cents) VALUES ('missing','2026-10-10','settled','success',1000)"
         )
         self.assertEqual(self.e.bank_summary()["mismatches"], 202)
         self.assertEqual(self.e.bank_summary()["missing_credits"], 10)

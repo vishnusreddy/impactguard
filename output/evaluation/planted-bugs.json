@@ -1,0 +1,2802 @@
+[
+  {
+    "id": "bug-01",
+    "observation": {
+      "metric": "settlement eligibility",
+      "scenario": "banking",
+      "deployment_mapping": {
+        "kind": "synthetic release bundle",
+        "candidate_shas": [
+          "3d56ec1c123df01b1ad59f9d131bb1e0bf34f57a",
+          "f992b2a856d0b58b87da7a0209df3ce031fe9881",
+          "9120f82a611bf368b82094617fa51432c65b9139",
+          "976eef6445c34dcf38ef5a0f0e89f4bc96213d74",
+          "cdea142818573466fe13b0c500448998c2c2cd29"
+        ]
+      },
+      "observations": [
+        {
+          "id": "e1",
+          "expected_outcome": false,
+          "observed_outcome": true,
+          "sample_size": 1200,
+          "input_condition": {
+            "status": "failed"
+          }
+        }
+      ],
+      "commits": [
+        {
+          "sha": "3d56ec1c123df01b1ad59f9d131bb1e0bf34f57a",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_f21e6e.py",
+              "patch": "@@ -82,2 +82,2 @@\n def evaluate(status):\n-    return status == \"settled\"\n+    return status != \"cancelled\"",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "f992b2a856d0b58b87da7a0209df3ce031fe9881",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_3792f3.py",
+              "patch": "@@ -67,2 +67,2 @@\n def evaluate(status):\n-    return status == \"settled\"\n+    return (status == \"settled\")",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "9120f82a611bf368b82094617fa51432c65b9139",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_e3217e.py",
+              "patch": "@@ -111,2 +111,3 @@\n def record_metric(event):\n-    return event\n+    # bank settlement failed pending success credit status callback payment ledger\n+    return event",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "976eef6445c34dcf38ef5a0f0e89f4bc96213d74",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_aabcb7.py",
+              "patch": "@@ -135,2 +135,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "cdea142818573466fe13b0c500448998c2c2cd29",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_fc1ee9.py",
+              "patch": "@@ -52,2 +52,2 @@\n def label(value):\n-    return str(value)\n+    return str(value).strip()",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        }
+      ],
+      "segments": []
+    },
+    "ground_truth": {
+      "sha": "3d56ec1c123df01b1ad59f9d131bb1e0bf34f57a",
+      "file": "src/banking/module_f21e6e.py",
+      "line": 83
+    },
+    "guard_verified": true
+  },
+  {
+    "id": "bug-02",
+    "observation": {
+      "metric": "pending settlement",
+      "scenario": "banking",
+      "deployment_mapping": {
+        "kind": "synthetic release bundle",
+        "candidate_shas": [
+          "f366237e1724aa0296b3e3b0d536c536abdfd456",
+          "0e24ccba755946ed608d9d01dd989a252677b40f",
+          "05a48c545d93631f8b2da5988c55bec227f73940",
+          "59ec8f53736353e1cd658655b212d7fd3e0a8116",
+          "10e7d16d8240e9b6f5c2f820a04173666111a769"
+        ]
+      },
+      "observations": [
+        {
+          "id": "e1",
+          "expected_outcome": false,
+          "observed_outcome": true,
+          "sample_size": 1200,
+          "input_condition": {
+            "status": "pending"
+          }
+        }
+      ],
+      "commits": [
+        {
+          "sha": "f366237e1724aa0296b3e3b0d536c536abdfd456",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_40bdb0.py",
+              "patch": "@@ -114,2 +114,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "0e24ccba755946ed608d9d01dd989a252677b40f",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_53631f.py",
+              "patch": "@@ -137,2 +137,2 @@\n def evaluate(status):\n-    return status == \"settled\"\n+    return (status == \"settled\")",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "05a48c545d93631f8b2da5988c55bec227f73940",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_9273ad.py",
+              "patch": "@@ -69,2 +69,3 @@\n def record_metric(event):\n-    return event\n+    # bank settlement failed pending success credit status callback payment ledger\n+    return event",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "59ec8f53736353e1cd658655b212d7fd3e0a8116",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_b38c34.py",
+              "patch": "@@ -164,2 +164,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "10e7d16d8240e9b6f5c2f820a04173666111a769",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_c8bd11.py",
+              "patch": "@@ -139,2 +139,2 @@\n def evaluate(status):\n-    return status == \"settled\"\n+    return status in (\"settled\", \"pending\")",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        }
+      ],
+      "segments": []
+    },
+    "ground_truth": {
+      "sha": "10e7d16d8240e9b6f5c2f820a04173666111a769",
+      "file": "src/banking/module_c8bd11.py",
+      "line": 140
+    },
+    "guard_verified": true
+  },
+  {
+    "id": "bug-03",
+    "observation": {
+      "metric": "reversal sign",
+      "scenario": "banking",
+      "deployment_mapping": {
+        "kind": "synthetic release bundle",
+        "candidate_shas": [
+          "06bb7869730d38f3f6fe601933eaec2b7a85f809",
+          "3bf892ff3b8c3377b4a103010459e71d1c10cad1",
+          "30817d8e463635c5b6f0277dec96979773ccb395",
+          "a6f2e630f4de543eec191038ecb6d1692fede714",
+          "60cfdd9f8d1fd4ff500c5f85be9cb2ae1d498951"
+        ]
+      },
+      "observations": [
+        {
+          "id": "e1",
+          "expected_outcome": -8300,
+          "observed_outcome": 8300,
+          "sample_size": 1200,
+          "input_condition": {
+            "amount": 8300
+          }
+        }
+      ],
+      "commits": [
+        {
+          "sha": "06bb7869730d38f3f6fe601933eaec2b7a85f809",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_cac405.py",
+              "patch": "@@ -78,2 +78,3 @@\n def record_metric(event):\n-    return event\n+    # bank settlement failed pending success credit status callback payment ledger\n+    return event",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "3bf892ff3b8c3377b4a103010459e71d1c10cad1",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_5c1f0d.py",
+              "patch": "@@ -79,2 +79,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "30817d8e463635c5b6f0277dec96979773ccb395",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_4b4685.py",
+              "patch": "@@ -79,2 +79,2 @@\n def evaluate(amount):\n-    return -abs(amount)\n+    return abs(amount)",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "a6f2e630f4de543eec191038ecb6d1692fede714",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_a3f34e.py",
+              "patch": "@@ -178,2 +178,2 @@\n def evaluate(amount):\n-    return -abs(amount)\n+    return (-abs(amount))",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "60cfdd9f8d1fd4ff500c5f85be9cb2ae1d498951",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_7f53d7.py",
+              "patch": "@@ -114,2 +114,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        }
+      ],
+      "segments": []
+    },
+    "ground_truth": {
+      "sha": "30817d8e463635c5b6f0277dec96979773ccb395",
+      "file": "src/banking/module_4b4685.py",
+      "line": 80
+    },
+    "guard_verified": true
+  },
+  {
+    "id": "bug-04",
+    "observation": {
+      "metric": "retry idempotency",
+      "scenario": "banking",
+      "deployment_mapping": {
+        "kind": "synthetic release bundle",
+        "candidate_shas": [
+          "bd5c58e08efac1deb03b8e25e75216f503d5f59c",
+          "2e9c6b25197dd6d2c4b41e4471da056ae9083fea",
+          "8a2f585567998f59bd063b064f6bfe55df48e00f",
+          "1ad335e88556407fd0215510486395dd18754fbf",
+          "1a67169e583f5d6ec5e5091503c258cdf71c7874"
+        ]
+      },
+      "observations": [
+        {
+          "id": "e1",
+          "expected_outcome": 0,
+          "observed_outcome": 8300,
+          "sample_size": 1200,
+          "input_condition": {
+            "seen": true
+          }
+        }
+      ],
+      "commits": [
+        {
+          "sha": "bd5c58e08efac1deb03b8e25e75216f503d5f59c",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_1a3333.py",
+              "patch": "@@ -146,2 +146,2 @@\n def label(value):\n-    return str(value)\n+    return str(value).strip()",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "2e9c6b25197dd6d2c4b41e4471da056ae9083fea",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_205d1f.py",
+              "patch": "@@ -117,2 +117,3 @@\n def record_metric(event):\n-    return event\n+    # bank settlement failed pending success credit status callback payment ledger\n+    return event",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "8a2f585567998f59bd063b064f6bfe55df48e00f",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_1f395c.py",
+              "patch": "@@ -70,2 +70,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "1ad335e88556407fd0215510486395dd18754fbf",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_1efeec.py",
+              "patch": "@@ -57,2 +57,2 @@\n def evaluate(seen):\n-    return 0 if seen else 8300\n+    return (0 if seen else 8300)",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "1a67169e583f5d6ec5e5091503c258cdf71c7874",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_35d21a.py",
+              "patch": "@@ -127,2 +127,2 @@\n def evaluate(seen):\n-    return 0 if seen else 8300\n+    return 8300",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        }
+      ],
+      "segments": []
+    },
+    "ground_truth": {
+      "sha": "1a67169e583f5d6ec5e5091503c258cdf71c7874",
+      "file": "src/banking/module_35d21a.py",
+      "line": 128
+    },
+    "guard_verified": true
+  },
+  {
+    "id": "bug-05",
+    "observation": {
+      "metric": "duplicate callbacks",
+      "scenario": "banking",
+      "deployment_mapping": {
+        "kind": "synthetic release bundle",
+        "candidate_shas": [
+          "3b21c81ab1b1a516f4a374242ae78c14c93e086b",
+          "72064d7a355618b967eda9e79345940d1ec5489b",
+          "dc7988c47ab68cb9fd16322c80f83cb7d60f2fb7",
+          "f0de4acb95423313782461037cdac0a199ed4549",
+          "0fdf5496b9a926f785f16e70dd9cda91ea12b47d"
+        ]
+      },
+      "observations": [
+        {
+          "id": "e1",
+          "expected_outcome": 0,
+          "observed_outcome": 8300,
+          "sample_size": 1200,
+          "input_condition": {
+            "count": 2
+          }
+        }
+      ],
+      "commits": [
+        {
+          "sha": "3b21c81ab1b1a516f4a374242ae78c14c93e086b",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_a1ece3.py",
+              "patch": "@@ -146,2 +146,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "72064d7a355618b967eda9e79345940d1ec5489b",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_59a00f.py",
+              "patch": "@@ -96,2 +96,2 @@\n def evaluate(count):\n-    return 8300 if count == 1 else 0\n+    return (8300 if count == 1 else 0)",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "dc7988c47ab68cb9fd16322c80f83cb7d60f2fb7",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_a260c6.py",
+              "patch": "@@ -112,2 +112,2 @@\n def label(value):\n-    return str(value)\n+    return str(value).strip()",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "f0de4acb95423313782461037cdac0a199ed4549",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_b9bcf1.py",
+              "patch": "@@ -187,2 +187,3 @@\n def record_metric(event):\n-    return event\n+    # bank settlement failed pending success credit status callback payment ledger\n+    return event",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "0fdf5496b9a926f785f16e70dd9cda91ea12b47d",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_67ab72.py",
+              "patch": "@@ -119,2 +119,2 @@\n def evaluate(count):\n-    return 8300 if count == 1 else 0\n+    return 8300",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        }
+      ],
+      "segments": []
+    },
+    "ground_truth": {
+      "sha": "0fdf5496b9a926f785f16e70dd9cda91ea12b47d",
+      "file": "src/banking/module_67ab72.py",
+      "line": 120
+    },
+    "guard_verified": true
+  },
+  {
+    "id": "bug-06",
+    "observation": {
+      "metric": "minor currency units",
+      "scenario": "banking",
+      "deployment_mapping": {
+        "kind": "synthetic release bundle",
+        "candidate_shas": [
+          "07d6bb5c02a215f4aeb8a895e7162a68a9c3245a",
+          "465411ee51a25c4f64619d8c0ea67fa557172481",
+          "9c9c72883b28545a6f2a43c06c8e33ecc62b22ed",
+          "203fd347b8ccfb6db72414ac89dfd84bdcb02f16",
+          "55e615ef67f8bd2e59aa40fe29784e03c45b479c"
+        ]
+      },
+      "observations": [
+        {
+          "id": "e1",
+          "expected_outcome": 8200,
+          "observed_outcome": 82000,
+          "sample_size": 1200,
+          "input_condition": {
+            "amount": 82
+          }
+        }
+      ],
+      "commits": [
+        {
+          "sha": "07d6bb5c02a215f4aeb8a895e7162a68a9c3245a",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_9701c4.py",
+              "patch": "@@ -173,2 +173,2 @@\n def evaluate(amount):\n-    return round(amount * 100)\n+    return round(amount * 1000)",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "465411ee51a25c4f64619d8c0ea67fa557172481",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_65db51.py",
+              "patch": "@@ -123,2 +123,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "9c9c72883b28545a6f2a43c06c8e33ecc62b22ed",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_80ca32.py",
+              "patch": "@@ -172,2 +172,3 @@\n def record_metric(event):\n-    return event\n+    # bank settlement failed pending success credit status callback payment ledger\n+    return event",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "203fd347b8ccfb6db72414ac89dfd84bdcb02f16",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_0e35a4.py",
+              "patch": "@@ -85,2 +85,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "55e615ef67f8bd2e59aa40fe29784e03c45b479c",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_683511.py",
+              "patch": "@@ -133,2 +133,2 @@\n def evaluate(amount):\n-    return round(amount * 100)\n+    return (round(amount * 100))",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        }
+      ],
+      "segments": []
+    },
+    "ground_truth": {
+      "sha": "07d6bb5c02a215f4aeb8a895e7162a68a9c3245a",
+      "file": "src/banking/module_9701c4.py",
+      "line": 174
+    },
+    "guard_verified": true
+  },
+  {
+    "id": "bug-07",
+    "observation": {
+      "metric": "net settlement",
+      "scenario": "banking",
+      "deployment_mapping": {
+        "kind": "synthetic release bundle",
+        "candidate_shas": [
+          "8ecc0779bd80a10d28a4d18107e10d8fca27152e",
+          "2337d9e5df8e4c6f5c59a426d0a000c23701f55b",
+          "139e53a0d8bb4a2dfec36d13bf988022e1630fe8",
+          "d9cd4e4c5b0084a90d6a2763fd7e4605b1264a07",
+          "c24499bbd8ade449a8d2302d56d40a1ca457663a"
+        ]
+      },
+      "observations": [
+        {
+          "id": "e1",
+          "expected_outcome": 8100,
+          "observed_outcome": 8500,
+          "sample_size": 1200,
+          "input_condition": {
+            "gross": 8300
+          }
+        }
+      ],
+      "commits": [
+        {
+          "sha": "8ecc0779bd80a10d28a4d18107e10d8fca27152e",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_dc316e.py",
+              "patch": "@@ -81,2 +81,2 @@\n def evaluate(gross):\n-    return gross - 200\n+    return gross + 200",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "2337d9e5df8e4c6f5c59a426d0a000c23701f55b",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_de7019.py",
+              "patch": "@@ -134,2 +134,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "139e53a0d8bb4a2dfec36d13bf988022e1630fe8",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_c50be8.py",
+              "patch": "@@ -46,2 +46,2 @@\n def label(value):\n-    return str(value)\n+    return str(value).strip()",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "d9cd4e4c5b0084a90d6a2763fd7e4605b1264a07",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_8eba9b.py",
+              "patch": "@@ -74,2 +74,3 @@\n def record_metric(event):\n-    return event\n+    # bank settlement failed pending success credit status callback payment ledger\n+    return event",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "c24499bbd8ade449a8d2302d56d40a1ca457663a",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_283281.py",
+              "patch": "@@ -97,2 +97,2 @@\n def evaluate(gross):\n-    return gross - 200\n+    return (gross - 200)",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        }
+      ],
+      "segments": []
+    },
+    "ground_truth": {
+      "sha": "8ecc0779bd80a10d28a4d18107e10d8fca27152e",
+      "file": "src/banking/module_dc316e.py",
+      "line": 82
+    },
+    "guard_verified": true
+  },
+  {
+    "id": "bug-08",
+    "observation": {
+      "metric": "discount composition",
+      "scenario": "promotion",
+      "deployment_mapping": {
+        "kind": "synthetic release bundle",
+        "candidate_shas": [
+          "1065b2d23a162edc53ba6d069d68f83ab9f8ab48",
+          "88f7b8a0cc4126493a707c3e84be0f9e5a212c3d",
+          "04a3820d9e0048bd9c80d95278e12764f3d6a1a4",
+          "f2de4a5f55753b1928a60c3729db9eb7d7d3c0a8",
+          "16bbb189c8d1fecc59bdfdad11537019f29a4be7"
+        ]
+      },
+      "observations": [
+        {
+          "id": "e1",
+          "expected_outcome": 60.0,
+          "observed_outcome": 55.00000000000001,
+          "sample_size": 1200,
+          "input_condition": {
+            "price": 100
+          }
+        }
+      ],
+      "commits": [
+        {
+          "sha": "1065b2d23a162edc53ba6d069d68f83ab9f8ab48",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/promotion/module_2d4685.py",
+              "patch": "@@ -117,2 +117,2 @@\n def evaluate(price):\n-    return price * .8 * .75\n+    return price * (1-.2-.25)",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "88f7b8a0cc4126493a707c3e84be0f9e5a212c3d",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/promotion/module_be9038.py",
+              "patch": "@@ -84,2 +84,2 @@\n def label(value):\n-    return str(value)\n+    return str(value).strip()",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "04a3820d9e0048bd9c80d95278e12764f3d6a1a4",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/promotion/module_bd1d6f.py",
+              "patch": "@@ -136,2 +136,2 @@\n def evaluate(price):\n-    return price * .8 * .75\n+    return (price * .8 * .75)",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "f2de4a5f55753b1928a60c3729db9eb7d7d3c0a8",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/promotion/module_e051fe.py",
+              "patch": "@@ -137,2 +137,3 @@\n def record_metric(event):\n-    return event\n+    # coupon discount stack campaign margin promotion price\n+    return event",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "16bbb189c8d1fecc59bdfdad11537019f29a4be7",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/promotion/module_7334d5.py",
+              "patch": "@@ -66,2 +66,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        }
+      ],
+      "segments": []
+    },
+    "ground_truth": {
+      "sha": "1065b2d23a162edc53ba6d069d68f83ab9f8ab48",
+      "file": "src/promotion/module_2d4685.py",
+      "line": 118
+    },
+    "guard_verified": true
+  },
+  {
+    "id": "bug-09",
+    "observation": {
+      "metric": "duplicate promotion",
+      "scenario": "promotion",
+      "deployment_mapping": {
+        "kind": "synthetic release bundle",
+        "candidate_shas": [
+          "4f4b9915278f966bb1fc2e61e4aed49eeceb5d3a",
+          "a66f7d2a30568102eb6fbd6678f424e3e272a29e",
+          "8d5659015b89598454e32cb0c224c1c8bd17381b",
+          "6efdfedb7edb8719d5b6937d828c7e3a45cecbfb",
+          "2f2a37d2bb4256af37ffc77193fb83eeda78fc64"
+        ]
+      },
+      "observations": [
+        {
+          "id": "e1",
+          "expected_outcome": 80.0,
+          "observed_outcome": 64.0,
+          "sample_size": 1200,
+          "input_condition": {
+            "price": 100
+          }
+        }
+      ],
+      "commits": [
+        {
+          "sha": "4f4b9915278f966bb1fc2e61e4aed49eeceb5d3a",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/promotion/module_410f5e.py",
+              "patch": "@@ -180,2 +180,2 @@\n def label(value):\n-    return str(value)\n+    return str(value).strip()",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "a66f7d2a30568102eb6fbd6678f424e3e272a29e",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/promotion/module_bc6b6d.py",
+              "patch": "@@ -94,2 +94,3 @@\n def record_metric(event):\n-    return event\n+    # coupon discount stack campaign margin promotion price\n+    return event",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "8d5659015b89598454e32cb0c224c1c8bd17381b",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/promotion/module_8786a9.py",
+              "patch": "@@ -68,2 +68,2 @@\n def evaluate(price):\n-    return price * .8\n+    return (price * .8)",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "6efdfedb7edb8719d5b6937d828c7e3a45cecbfb",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/promotion/module_1613d3.py",
+              "patch": "@@ -91,2 +91,2 @@\n def evaluate(price):\n-    return price * .8\n+    return price * .8 * .8",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "2f2a37d2bb4256af37ffc77193fb83eeda78fc64",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/promotion/module_a4349a.py",
+              "patch": "@@ -150,2 +150,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        }
+      ],
+      "segments": []
+    },
+    "ground_truth": {
+      "sha": "6efdfedb7edb8719d5b6937d828c7e3a45cecbfb",
+      "file": "src/promotion/module_1613d3.py",
+      "line": 92
+    },
+    "guard_verified": true
+  },
+  {
+    "id": "bug-10",
+    "observation": {
+      "metric": "discount cap",
+      "scenario": "promotion",
+      "deployment_mapping": {
+        "kind": "synthetic release bundle",
+        "candidate_shas": [
+          "36de8c0c55f97f23e89d8c94d89f2296e391b94b",
+          "def871e1473b70fecac928085048ee3cf7cb3aa8",
+          "ea86631b242e077eaa375e02017341624422b756",
+          "98acf09c5c9aa0d9258c01a880d8b35d3db19704",
+          "b748b77a4d2c88cdb8b1ec08b7017c1d8453c85a"
+        ]
+      },
+      "observations": [
+        {
+          "id": "e1",
+          "expected_outcome": 30,
+          "observed_outcome": 45,
+          "sample_size": 1200,
+          "input_condition": {
+            "discount": 45
+          }
+        }
+      ],
+      "commits": [
+        {
+          "sha": "36de8c0c55f97f23e89d8c94d89f2296e391b94b",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/promotion/module_04a286.py",
+              "patch": "@@ -92,2 +92,2 @@\n def evaluate(discount):\n-    return min(discount, 30)\n+    return max(discount, 30)",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "def871e1473b70fecac928085048ee3cf7cb3aa8",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/promotion/module_c0acdd.py",
+              "patch": "@@ -118,2 +118,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "ea86631b242e077eaa375e02017341624422b756",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/promotion/module_e9646f.py",
+              "patch": "@@ -186,2 +186,3 @@\n def record_metric(event):\n-    return event\n+    # coupon discount stack campaign margin promotion price\n+    return event",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "98acf09c5c9aa0d9258c01a880d8b35d3db19704",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/promotion/module_359479.py",
+              "patch": "@@ -114,2 +114,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "b748b77a4d2c88cdb8b1ec08b7017c1d8453c85a",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/promotion/module_45ca79.py",
+              "patch": "@@ -108,2 +108,2 @@\n def evaluate(discount):\n-    return min(discount, 30)\n+    return (min(discount, 30))",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        }
+      ],
+      "segments": []
+    },
+    "ground_truth": {
+      "sha": "36de8c0c55f97f23e89d8c94d89f2296e391b94b",
+      "file": "src/promotion/module_04a286.py",
+      "line": 93
+    },
+    "guard_verified": true
+  },
+  {
+    "id": "bug-11",
+    "observation": {
+      "metric": "tax calculation",
+      "scenario": "promotion",
+      "deployment_mapping": {
+        "kind": "synthetic release bundle",
+        "candidate_shas": [
+          "403ab4754df3c4bfb10444cb867454512f30c0aa",
+          "37446dc1aa7bc56757e4b6f0fda8cb4ffceed48d",
+          "29b147e9d7eb4ab8882b44caddc769ae1e1903f0",
+          "fdc66eebc76d8d7ac8ec55bf4858a401b86e8f11",
+          "2f32e4e4996a96c9c62cf2706f2b82e6c240b2be"
+        ]
+      },
+      "observations": [
+        {
+          "id": "e1",
+          "expected_outcome": 88.0,
+          "observed_outcome": 90.0,
+          "sample_size": 1200,
+          "input_condition": {
+            "price": 100
+          }
+        }
+      ],
+      "commits": [
+        {
+          "sha": "403ab4754df3c4bfb10444cb867454512f30c0aa",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/promotion/module_f9f9b6.py",
+              "patch": "@@ -66,2 +66,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "37446dc1aa7bc56757e4b6f0fda8cb4ffceed48d",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/promotion/module_97ab90.py",
+              "patch": "@@ -167,2 +167,2 @@\n def evaluate(price):\n-    return price * .8 * 1.1\n+    return (price * .8 * 1.1)",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "29b147e9d7eb4ab8882b44caddc769ae1e1903f0",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/promotion/module_22583d.py",
+              "patch": "@@ -162,2 +162,3 @@\n def record_metric(event):\n-    return event\n+    # coupon discount stack campaign margin promotion price\n+    return event",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "fdc66eebc76d8d7ac8ec55bf4858a401b86e8f11",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/promotion/module_a15ea6.py",
+              "patch": "@@ -180,2 +180,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "2f32e4e4996a96c9c62cf2706f2b82e6c240b2be",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/promotion/module_44ca14.py",
+              "patch": "@@ -67,2 +67,2 @@\n def evaluate(price):\n-    return price * .8 * 1.1\n+    return price * .8 + price * .1",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        }
+      ],
+      "segments": []
+    },
+    "ground_truth": {
+      "sha": "2f32e4e4996a96c9c62cf2706f2b82e6c240b2be",
+      "file": "src/promotion/module_44ca14.py",
+      "line": 68
+    },
+    "guard_verified": true
+  },
+  {
+    "id": "bug-12",
+    "observation": {
+      "metric": "shipping eligibility",
+      "scenario": "checkout",
+      "deployment_mapping": {
+        "kind": "synthetic release bundle",
+        "candidate_shas": [
+          "17401b5d64f8d81b2e67d7ce7e389e2e6636e19d",
+          "438886df9af637f3528d47c253d78faa1a748cf5",
+          "82d57b27dee9d72a51ea0106e75368a54541fef0",
+          "f6d72881b319262c1fcc3e22928887c46130ce85",
+          "73b7d8090c14be412f4e983b37c95af1bbe2a2fb"
+        ]
+      },
+      "observations": [
+        {
+          "id": "e1",
+          "expected_outcome": false,
+          "observed_outcome": true,
+          "sample_size": 1200,
+          "input_condition": {
+            "subtotal": 30
+          }
+        }
+      ],
+      "commits": [
+        {
+          "sha": "17401b5d64f8d81b2e67d7ce7e389e2e6636e19d",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/checkout/module_d5138d.py",
+              "patch": "@@ -63,2 +63,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "438886df9af637f3528d47c253d78faa1a748cf5",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/checkout/module_c62ba7.py",
+              "patch": "@@ -48,2 +48,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "82d57b27dee9d72a51ea0106e75368a54541fef0",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/checkout/module_e30330.py",
+              "patch": "@@ -186,2 +186,2 @@\n def evaluate(subtotal):\n-    return subtotal >= 50\n+    return (subtotal >= 50)",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "f6d72881b319262c1fcc3e22928887c46130ce85",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/checkout/module_c8d74d.py",
+              "patch": "@@ -72,2 +72,2 @@\n def evaluate(subtotal):\n-    return subtotal >= 50\n+    return subtotal <= 50",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "73b7d8090c14be412f4e983b37c95af1bbe2a2fb",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/checkout/module_147835.py",
+              "patch": "@@ -75,2 +75,3 @@\n def record_metric(event):\n-    return event\n+    # checkout paypal redirect token payment safari\n+    return event",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        }
+      ],
+      "segments": []
+    },
+    "ground_truth": {
+      "sha": "f6d72881b319262c1fcc3e22928887c46130ce85",
+      "file": "src/checkout/module_c8d74d.py",
+      "line": 73
+    },
+    "guard_verified": true
+  },
+  {
+    "id": "bug-13",
+    "observation": {
+      "metric": "refund direction",
+      "scenario": "banking",
+      "deployment_mapping": {
+        "kind": "synthetic release bundle",
+        "candidate_shas": [
+          "c56b5b1ca0a6061ae5a3ad863fac6f3571d7d337",
+          "aa15ac68f49109c60dee8f8a0437d9c0a9b2d93c",
+          "f185726b58d0f3cb9edaa8b3cf3ca590ba6a83b2",
+          "dc981b9e251dc3bd7e5b7e8be9d7d6cf3574d987",
+          "d9be166f2a4b6b4c1b690220bdf90986ecd58063"
+        ]
+      },
+      "observations": [
+        {
+          "id": "e1",
+          "expected_outcome": -1200,
+          "observed_outcome": 1200,
+          "sample_size": 1200,
+          "input_condition": {
+            "amount": 1200
+          }
+        }
+      ],
+      "commits": [
+        {
+          "sha": "c56b5b1ca0a6061ae5a3ad863fac6f3571d7d337",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_c35316.py",
+              "patch": "@@ -126,2 +126,2 @@\n def evaluate(amount):\n-    return -amount\n+    return amount",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "aa15ac68f49109c60dee8f8a0437d9c0a9b2d93c",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_28cbd4.py",
+              "patch": "@@ -77,2 +77,3 @@\n def record_metric(event):\n-    return event\n+    # bank settlement failed pending success credit status callback payment ledger\n+    return event",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "f185726b58d0f3cb9edaa8b3cf3ca590ba6a83b2",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_633744.py",
+              "patch": "@@ -95,2 +95,2 @@\n def evaluate(amount):\n-    return -amount\n+    return (-amount)",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "dc981b9e251dc3bd7e5b7e8be9d7d6cf3574d987",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_3e8f87.py",
+              "patch": "@@ -185,2 +185,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "d9be166f2a4b6b4c1b690220bdf90986ecd58063",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_851acb.py",
+              "patch": "@@ -69,2 +69,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        }
+      ],
+      "segments": []
+    },
+    "ground_truth": {
+      "sha": "c56b5b1ca0a6061ae5a3ad863fac6f3571d7d337",
+      "file": "src/banking/module_c35316.py",
+      "line": 127
+    },
+    "guard_verified": true
+  },
+  {
+    "id": "bug-14",
+    "observation": {
+      "metric": "refund percentage",
+      "scenario": "banking",
+      "deployment_mapping": {
+        "kind": "synthetic release bundle",
+        "candidate_shas": [
+          "54f2064c042b1b896d0d315f05d9148c63c5d07f",
+          "d58399df8d0223ada3824e2105415286541791d8",
+          "6b0d1c0a695c79619b42d0d525c09b3d5c5b5920",
+          "367340e5a71849b0c0fbb89a71257cf8db7fd92e",
+          "c8b2d4c3e0ab90abe352dc1954092bd4809cfe80"
+        ]
+      },
+      "observations": [
+        {
+          "id": "e1",
+          "expected_outcome": 2000,
+          "observed_outcome": 200000,
+          "sample_size": 1200,
+          "input_condition": {
+            "amount": 8000
+          }
+        }
+      ],
+      "commits": [
+        {
+          "sha": "54f2064c042b1b896d0d315f05d9148c63c5d07f",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_47291a.py",
+              "patch": "@@ -115,2 +115,2 @@\n def evaluate(amount):\n-    return round(amount * .25)\n+    return (round(amount * .25))",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "d58399df8d0223ada3824e2105415286541791d8",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_af59bd.py",
+              "patch": "@@ -80,2 +80,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "6b0d1c0a695c79619b42d0d525c09b3d5c5b5920",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_57b2aa.py",
+              "patch": "@@ -178,2 +178,2 @@\n def evaluate(amount):\n-    return round(amount * .25)\n+    return round(amount * 25)",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "367340e5a71849b0c0fbb89a71257cf8db7fd92e",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_239d05.py",
+              "patch": "@@ -67,2 +67,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "c8b2d4c3e0ab90abe352dc1954092bd4809cfe80",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_785f7c.py",
+              "patch": "@@ -185,2 +185,3 @@\n def record_metric(event):\n-    return event\n+    # bank settlement failed pending success credit status callback payment ledger\n+    return event",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        }
+      ],
+      "segments": []
+    },
+    "ground_truth": {
+      "sha": "6b0d1c0a695c79619b42d0d525c09b3d5c5b5920",
+      "file": "src/banking/module_57b2aa.py",
+      "line": 179
+    },
+    "guard_verified": true
+  },
+  {
+    "id": "bug-15",
+    "observation": {
+      "metric": "cashback settlement",
+      "scenario": "banking",
+      "deployment_mapping": {
+        "kind": "synthetic release bundle",
+        "candidate_shas": [
+          "f6e807c598a15ba8a57ca7892390c82e49a9119a",
+          "4e0977963e11ba7ae8c63459867ced45fcfa4152",
+          "27d6cee1b94225f7a45f2bfd306e31b39dc3a39d",
+          "5e1938c527d9acbcda68b965607bf99219fcfcdc",
+          "e4a9e17db9924d7a97ac8de91789d146d5ee279b"
+        ]
+      },
+      "observations": [
+        {
+          "id": "e1",
+          "expected_outcome": false,
+          "observed_outcome": true,
+          "sample_size": 1200,
+          "input_condition": {
+            "status": "pending"
+          }
+        }
+      ],
+      "commits": [
+        {
+          "sha": "f6e807c598a15ba8a57ca7892390c82e49a9119a",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_acaf85.py",
+              "patch": "@@ -169,2 +169,2 @@\n def label(value):\n-    return str(value)\n+    return str(value).strip()",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "4e0977963e11ba7ae8c63459867ced45fcfa4152",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_dfa11a.py",
+              "patch": "@@ -93,2 +93,2 @@\n def evaluate(status):\n-    return status == \"settled\"\n+    return status != \"failed\"",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "27d6cee1b94225f7a45f2bfd306e31b39dc3a39d",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_d202e3.py",
+              "patch": "@@ -57,2 +57,2 @@\n def evaluate(status):\n-    return status == \"settled\"\n+    return (status == \"settled\")",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "5e1938c527d9acbcda68b965607bf99219fcfcdc",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_5914a1.py",
+              "patch": "@@ -187,2 +187,3 @@\n def record_metric(event):\n-    return event\n+    # bank settlement failed pending success credit status callback payment ledger\n+    return event",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "e4a9e17db9924d7a97ac8de91789d146d5ee279b",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_67a2b7.py",
+              "patch": "@@ -173,2 +173,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        }
+      ],
+      "segments": []
+    },
+    "ground_truth": {
+      "sha": "4e0977963e11ba7ae8c63459867ced45fcfa4152",
+      "file": "src/banking/module_dfa11a.py",
+      "line": 94
+    },
+    "guard_verified": true
+  },
+  {
+    "id": "bug-16",
+    "observation": {
+      "metric": "delivery promise",
+      "scenario": "delivery",
+      "deployment_mapping": {
+        "kind": "synthetic release bundle",
+        "candidate_shas": [
+          "9d07857fb526e97772cde796a92585d4336884f6",
+          "26e16a60939a2d989c673b748980a52c5040cd0f",
+          "51151260bcf1cc853453b10d54564f2df466ba17",
+          "0c87ef67bf0c05ec772f6a1b5666f75e08416fd3",
+          "b25619d8e2ba61de0abd2c51f0fb5ffe595b1c6d"
+        ]
+      },
+      "observations": [
+        {
+          "id": "e1",
+          "expected_outcome": false,
+          "observed_outcome": true,
+          "sample_size": 1200,
+          "input_condition": {
+            "days": 10
+          }
+        }
+      ],
+      "commits": [
+        {
+          "sha": "9d07857fb526e97772cde796a92585d4336884f6",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/delivery/module_1c4fdc.py",
+              "patch": "@@ -54,2 +54,2 @@\n def evaluate(days):\n-    return days <= 5\n+    return (days <= 5)",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "26e16a60939a2d989c673b748980a52c5040cd0f",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/delivery/module_aa4d66.py",
+              "patch": "@@ -188,2 +188,3 @@\n def record_metric(event):\n-    return event\n+    # delivery carrier routing delayed repeat retention cohort\n+    return event",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "51151260bcf1cc853453b10d54564f2df466ba17",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/delivery/module_4b8cee.py",
+              "patch": "@@ -143,2 +143,2 @@\n def label(value):\n-    return str(value)\n+    return str(value).strip()",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "0c87ef67bf0c05ec772f6a1b5666f75e08416fd3",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/delivery/module_e1c7dc.py",
+              "patch": "@@ -130,2 +130,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "b25619d8e2ba61de0abd2c51f0fb5ffe595b1c6d",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/delivery/module_43555d.py",
+              "patch": "@@ -166,2 +166,2 @@\n def evaluate(days):\n-    return days <= 5\n+    return days <= 15",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        }
+      ],
+      "segments": []
+    },
+    "ground_truth": {
+      "sha": "b25619d8e2ba61de0abd2c51f0fb5ffe595b1c6d",
+      "file": "src/delivery/module_43555d.py",
+      "line": 167
+    },
+    "guard_verified": true
+  },
+  {
+    "id": "bug-17",
+    "observation": {
+      "metric": "missing payment token",
+      "scenario": "checkout",
+      "deployment_mapping": {
+        "kind": "synthetic release bundle",
+        "candidate_shas": [
+          "0375528a87aec74cf1095f6e00f6c6118398af00",
+          "08f7c5ff24dd6aaf51001b8cc152bbb1fe999480",
+          "2b26ad5aaef28578a10878f55484e3ee0b70c367",
+          "01bb022a2ba5acf448c5d369f17bf54cdea740a1",
+          "30cec26b954c7da0ce2cadd85e21b0b355b1592d"
+        ]
+      },
+      "observations": [
+        {
+          "id": "e1",
+          "expected_outcome": false,
+          "observed_outcome": true,
+          "sample_size": 1200,
+          "input_condition": {
+            "token": ""
+          }
+        }
+      ],
+      "commits": [
+        {
+          "sha": "0375528a87aec74cf1095f6e00f6c6118398af00",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/checkout/module_67db79.py",
+              "patch": "@@ -188,2 +188,2 @@\n def label(value):\n-    return str(value)\n+    return str(value).strip()",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "08f7c5ff24dd6aaf51001b8cc152bbb1fe999480",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/checkout/module_10a23b.py",
+              "patch": "@@ -184,2 +184,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "2b26ad5aaef28578a10878f55484e3ee0b70c367",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/checkout/module_e5ebb4.py",
+              "patch": "@@ -75,2 +75,3 @@\n def record_metric(event):\n-    return event\n+    # checkout paypal redirect token payment safari\n+    return event",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "01bb022a2ba5acf448c5d369f17bf54cdea740a1",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/checkout/module_2b7616.py",
+              "patch": "@@ -118,2 +118,2 @@\n def evaluate(token):\n-    return bool(token)\n+    return True",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "30cec26b954c7da0ce2cadd85e21b0b355b1592d",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/checkout/module_290c4f.py",
+              "patch": "@@ -154,2 +154,2 @@\n def evaluate(token):\n-    return bool(token)\n+    return (bool(token))",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        }
+      ],
+      "segments": []
+    },
+    "ground_truth": {
+      "sha": "01bb022a2ba5acf448c5d369f17bf54cdea740a1",
+      "file": "src/checkout/module_2b7616.py",
+      "line": 119
+    },
+    "guard_verified": true
+  },
+  {
+    "id": "bug-18",
+    "observation": {
+      "metric": "redirect token source",
+      "scenario": "checkout",
+      "deployment_mapping": {
+        "kind": "synthetic release bundle",
+        "candidate_shas": [
+          "2da52289a2cb070bb9e90e2c6ce0a9d2e6f45f0f",
+          "be71edbcf267848d0f8f082c60f655ee11fbcdaf",
+          "297d9e483e832e4e0a3cf9f6ef9d826a461b95a9",
+          "8ca370cb8e44c7703beaad80e76ca3d345606166",
+          "56683a21e44f254baa9aabb2092ce6478bc0d23e"
+        ]
+      },
+      "observations": [
+        {
+          "id": "e1",
+          "expected_outcome": "valid-token",
+          "observed_outcome": "",
+          "sample_size": 1200,
+          "input_condition": {
+            "session_token": "valid-token"
+          }
+        }
+      ],
+      "commits": [
+        {
+          "sha": "2da52289a2cb070bb9e90e2c6ce0a9d2e6f45f0f",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/checkout/module_351a97.py",
+              "patch": "@@ -180,2 +180,2 @@\n def evaluate(session_token):\n-    return session_token\n+    return (session_token)",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "be71edbcf267848d0f8f082c60f655ee11fbcdaf",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/checkout/module_6b86a5.py",
+              "patch": "@@ -172,2 +172,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "297d9e483e832e4e0a3cf9f6ef9d826a461b95a9",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/checkout/module_ac1834.py",
+              "patch": "@@ -102,2 +102,2 @@\n def evaluate(session_token):\n-    return session_token\n+    return \"\"",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "8ca370cb8e44c7703beaad80e76ca3d345606166",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/checkout/module_ce3772.py",
+              "patch": "@@ -129,2 +129,3 @@\n def record_metric(event):\n-    return event\n+    # checkout paypal redirect token payment safari\n+    return event",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "56683a21e44f254baa9aabb2092ce6478bc0d23e",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/checkout/module_5c505b.py",
+              "patch": "@@ -76,2 +76,2 @@\n def label(value):\n-    return str(value)\n+    return str(value).strip()",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        }
+      ],
+      "segments": []
+    },
+    "ground_truth": {
+      "sha": "297d9e483e832e4e0a3cf9f6ef9d826a461b95a9",
+      "file": "src/checkout/module_ac1834.py",
+      "line": 103
+    },
+    "guard_verified": true
+  },
+  {
+    "id": "bug-19",
+    "observation": {
+      "metric": "callback business status",
+      "scenario": "banking",
+      "deployment_mapping": {
+        "kind": "synthetic release bundle",
+        "candidate_shas": [
+          "a88ca21a636684ca025030f75434ced89c763fdd",
+          "42b1714a4331f65745d11d092923c4161e42e389",
+          "a2ee6d8cb66fdf330445f7c9fe596aea2b5b33d3",
+          "3d6ca910ee464a2bfecefb10de60184a12c822f3",
+          "e947f53e88e381dd2d2cbc0eb605392f8b87f54a"
+        ]
+      },
+      "observations": [
+        {
+          "id": "e1",
+          "expected_outcome": false,
+          "observed_outcome": true,
+          "sample_size": 1200,
+          "input_condition": {
+            "status": "failed"
+          }
+        }
+      ],
+      "commits": [
+        {
+          "sha": "a88ca21a636684ca025030f75434ced89c763fdd",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_eafb6b.py",
+              "patch": "@@ -42,2 +42,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "42b1714a4331f65745d11d092923c4161e42e389",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_9e5d44.py",
+              "patch": "@@ -122,2 +122,2 @@\n def evaluate(status):\n-    return status == \"settled\"\n+    return (status == \"settled\")",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "a2ee6d8cb66fdf330445f7c9fe596aea2b5b33d3",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_0b2582.py",
+              "patch": "@@ -67,2 +67,3 @@\n def record_metric(event):\n-    return event\n+    # bank settlement failed pending success credit status callback payment ledger\n+    return event",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "3d6ca910ee464a2bfecefb10de60184a12c822f3",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_faa833.py",
+              "patch": "@@ -182,2 +182,2 @@\n def label(value):\n-    return str(value)\n+    return str(value).strip()",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "e947f53e88e381dd2d2cbc0eb605392f8b87f54a",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_66a258.py",
+              "patch": "@@ -63,2 +63,2 @@\n def evaluate(status):\n-    return status == \"settled\"\n+    return True",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        }
+      ],
+      "segments": []
+    },
+    "ground_truth": {
+      "sha": "e947f53e88e381dd2d2cbc0eb605392f8b87f54a",
+      "file": "src/banking/module_66a258.py",
+      "line": 64
+    },
+    "guard_verified": true
+  },
+  {
+    "id": "bug-20",
+    "observation": {
+      "metric": "timeout handling",
+      "scenario": "banking",
+      "deployment_mapping": {
+        "kind": "synthetic release bundle",
+        "candidate_shas": [
+          "1c1c5e8f920d652506592b58521f2a621ba33d3d",
+          "334500066fd43ce4243ba2d425fdf09a4af7b427",
+          "e74417d36ef750e8c0472407b6ab2c37a463be9a",
+          "235448f49ebdae481ed4f0b7f1a5ace041a62f0f",
+          "db6852c3d3f7fd7babc5b7ea39b114eb86929911"
+        ]
+      },
+      "observations": [
+        {
+          "id": "e1",
+          "expected_outcome": false,
+          "observed_outcome": true,
+          "sample_size": 1200,
+          "input_condition": {
+            "timed_out": true
+          }
+        }
+      ],
+      "commits": [
+        {
+          "sha": "1c1c5e8f920d652506592b58521f2a621ba33d3d",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_094849.py",
+              "patch": "@@ -52,2 +52,2 @@\n def evaluate(timed_out):\n-    return not timed_out\n+    return True",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "334500066fd43ce4243ba2d425fdf09a4af7b427",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_34dd74.py",
+              "patch": "@@ -142,2 +142,3 @@\n def record_metric(event):\n-    return event\n+    # bank settlement failed pending success credit status callback payment ledger\n+    return event",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "e74417d36ef750e8c0472407b6ab2c37a463be9a",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_e293eb.py",
+              "patch": "@@ -153,2 +153,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "235448f49ebdae481ed4f0b7f1a5ace041a62f0f",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_99eb75.py",
+              "patch": "@@ -168,2 +168,2 @@\n def label(value):\n-    return str(value)\n+    return str(value).strip()",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "db6852c3d3f7fd7babc5b7ea39b114eb86929911",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_ea72c5.py",
+              "patch": "@@ -97,2 +97,2 @@\n def evaluate(timed_out):\n-    return not timed_out\n+    return (not timed_out)",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        }
+      ],
+      "segments": []
+    },
+    "ground_truth": {
+      "sha": "1c1c5e8f920d652506592b58521f2a621ba33d3d",
+      "file": "src/banking/module_094849.py",
+      "line": 53
+    },
+    "guard_verified": true
+  },
+  {
+    "id": "bug-21",
+    "observation": {
+      "metric": "payout fees",
+      "scenario": "banking",
+      "deployment_mapping": {
+        "kind": "synthetic release bundle",
+        "candidate_shas": [
+          "7e23a79bda0fe423b26cce33cd5f4419b4994425",
+          "a0e8b785f8144d4e40e2d2a6e2c1e2bebd9921d0",
+          "980de636fe4993c19ad68af267868e354d67da4b",
+          "27bc53e0689d9326fcacf8a04c26f58fd4f98e4b",
+          "c2e221e44bf16b69b4ba34653cabd82701bb2ece"
+        ]
+      },
+      "observations": [
+        {
+          "id": "e1",
+          "expected_outcome": 8700,
+          "observed_outcome": 9000,
+          "sample_size": 1200,
+          "input_condition": {
+            "gross": 9000
+          }
+        }
+      ],
+      "commits": [
+        {
+          "sha": "7e23a79bda0fe423b26cce33cd5f4419b4994425",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_bc6429.py",
+              "patch": "@@ -98,2 +98,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "a0e8b785f8144d4e40e2d2a6e2c1e2bebd9921d0",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_27a47b.py",
+              "patch": "@@ -112,2 +112,2 @@\n def evaluate(gross):\n-    return gross - 300\n+    return (gross - 300)",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "980de636fe4993c19ad68af267868e354d67da4b",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_4b0542.py",
+              "patch": "@@ -109,2 +109,2 @@\n def evaluate(gross):\n-    return gross - 300\n+    return gross",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "27bc53e0689d9326fcacf8a04c26f58fd4f98e4b",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_41b2c2.py",
+              "patch": "@@ -50,2 +50,3 @@\n def record_metric(event):\n-    return event\n+    # bank settlement failed pending success credit status callback payment ledger\n+    return event",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "c2e221e44bf16b69b4ba34653cabd82701bb2ece",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_81986c.py",
+              "patch": "@@ -150,2 +150,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        }
+      ],
+      "segments": []
+    },
+    "ground_truth": {
+      "sha": "980de636fe4993c19ad68af267868e354d67da4b",
+      "file": "src/banking/module_4b0542.py",
+      "line": 110
+    },
+    "guard_verified": true
+  },
+  {
+    "id": "bug-22",
+    "observation": {
+      "metric": "contribution margin",
+      "scenario": "promotion",
+      "deployment_mapping": {
+        "kind": "synthetic release bundle",
+        "candidate_shas": [
+          "8d9206c30c5f7ef5b25c4327cc7df0ccb7e2385b",
+          "9dec88068e27de445b6c418b29cc1910f4c7a888",
+          "b1ed7505cb1783bd74dbd4afd6d4f7003975b9f4",
+          "2034fd78f9561695eb5d0f1a1f4dc7ab9a8b42e9",
+          "a1b51557f50741f4f752de099ecfa0cde88d7a17"
+        ]
+      },
+      "observations": [
+        {
+          "id": "e1",
+          "expected_outcome": -9,
+          "observed_outcome": 55,
+          "sample_size": 1200,
+          "input_condition": {
+            "revenue": 55
+          }
+        }
+      ],
+      "commits": [
+        {
+          "sha": "8d9206c30c5f7ef5b25c4327cc7df0ccb7e2385b",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/promotion/module_3f89d2.py",
+              "patch": "@@ -155,2 +155,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "9dec88068e27de445b6c418b29cc1910f4c7a888",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/promotion/module_600cf4.py",
+              "patch": "@@ -157,2 +157,2 @@\n def evaluate(revenue):\n-    return revenue - 64\n+    return revenue",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "b1ed7505cb1783bd74dbd4afd6d4f7003975b9f4",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/promotion/module_3d9112.py",
+              "patch": "@@ -174,2 +174,3 @@\n def record_metric(event):\n-    return event\n+    # coupon discount stack campaign margin promotion price\n+    return event",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "2034fd78f9561695eb5d0f1a1f4dc7ab9a8b42e9",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/promotion/module_965ad9.py",
+              "patch": "@@ -54,2 +54,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "a1b51557f50741f4f752de099ecfa0cde88d7a17",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/promotion/module_c7a5b0.py",
+              "patch": "@@ -64,2 +64,2 @@\n def evaluate(revenue):\n-    return revenue - 64\n+    return (revenue - 64)",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        }
+      ],
+      "segments": []
+    },
+    "ground_truth": {
+      "sha": "9dec88068e27de445b6c418b29cc1910f4c7a888",
+      "file": "src/promotion/module_600cf4.py",
+      "line": 158
+    },
+    "guard_verified": true
+  },
+  {
+    "id": "bug-23",
+    "observation": {
+      "metric": "rounding to minor units",
+      "scenario": "banking",
+      "deployment_mapping": {
+        "kind": "synthetic release bundle",
+        "candidate_shas": [
+          "10ceb3776e7bb3b02337fec10d3a6f3840575563",
+          "e18cb4f8e8cbf58abfc8151c3b8caecdef72cba0",
+          "151b8b7ebc2b717cdd039b0b11ded94dbc4d5f4c",
+          "a835fe8f90bab295f3604cabc94f934a5f2572ff",
+          "c8d6c67c62a9d3de2898998daebde38bea8193f9"
+        ]
+      },
+      "observations": [
+        {
+          "id": "e1",
+          "expected_outcome": 1013,
+          "observed_outcome": 1012,
+          "sample_size": 1200,
+          "input_condition": {
+            "amount": 10.129
+          }
+        }
+      ],
+      "commits": [
+        {
+          "sha": "10ceb3776e7bb3b02337fec10d3a6f3840575563",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_7588f9.py",
+              "patch": "@@ -162,2 +162,2 @@\n def evaluate(amount):\n-    return round(amount * 100)\n+    return (round(amount * 100))",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "e18cb4f8e8cbf58abfc8151c3b8caecdef72cba0",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_20c1d1.py",
+              "patch": "@@ -184,2 +184,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "151b8b7ebc2b717cdd039b0b11ded94dbc4d5f4c",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_4d3a15.py",
+              "patch": "@@ -121,2 +121,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "a835fe8f90bab295f3604cabc94f934a5f2572ff",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_06248f.py",
+              "patch": "@@ -128,2 +128,2 @@\n def evaluate(amount):\n-    return round(amount * 100)\n+    return int(amount * 100)",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "c8d6c67c62a9d3de2898998daebde38bea8193f9",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/banking/module_70192b.py",
+              "patch": "@@ -52,2 +52,3 @@\n def record_metric(event):\n-    return event\n+    # bank settlement failed pending success credit status callback payment ledger\n+    return event",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        }
+      ],
+      "segments": []
+    },
+    "ground_truth": {
+      "sha": "a835fe8f90bab295f3604cabc94f934a5f2572ff",
+      "file": "src/banking/module_06248f.py",
+      "line": 129
+    },
+    "guard_verified": true
+  },
+  {
+    "id": "bug-24",
+    "observation": {
+      "metric": "carrier routing",
+      "scenario": "delivery",
+      "deployment_mapping": {
+        "kind": "synthetic release bundle",
+        "candidate_shas": [
+          "b175019eb7b1646e82928a8714514bc71c876f1e",
+          "8c4277144eea9f195a0260f2286111c073d55c13",
+          "53e631ec546a93c9abbb36fca2a90e36a18bedff",
+          "028982b828521265f97301237de6b21f2300ae5c",
+          "d14d932cfe1010d84940d507d0616e1cd4dd8c4e"
+        ]
+      },
+      "observations": [
+        {
+          "id": "e1",
+          "expected_outcome": "express",
+          "observed_outcome": "economy",
+          "sample_size": 1200,
+          "input_condition": {
+            "premium": true
+          }
+        }
+      ],
+      "commits": [
+        {
+          "sha": "b175019eb7b1646e82928a8714514bc71c876f1e",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/delivery/module_f98f70.py",
+              "patch": "@@ -172,2 +172,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "8c4277144eea9f195a0260f2286111c073d55c13",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/delivery/module_203603.py",
+              "patch": "@@ -158,2 +158,3 @@\n def record_metric(event):\n-    return event\n+    # delivery carrier routing delayed repeat retention cohort\n+    return event",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "53e631ec546a93c9abbb36fca2a90e36a18bedff",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/delivery/module_8f77e4.py",
+              "patch": "@@ -148,2 +148,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "028982b828521265f97301237de6b21f2300ae5c",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/delivery/module_6a7c51.py",
+              "patch": "@@ -175,2 +175,2 @@\n def evaluate(premium):\n-    return \"express\" if premium else \"economy\"\n+    return \"economy\"",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "d14d932cfe1010d84940d507d0616e1cd4dd8c4e",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/delivery/module_909054.py",
+              "patch": "@@ -173,2 +173,2 @@\n def evaluate(premium):\n-    return \"express\" if premium else \"economy\"\n+    return (\"express\" if premium else \"economy\")",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        }
+      ],
+      "segments": []
+    },
+    "ground_truth": {
+      "sha": "028982b828521265f97301237de6b21f2300ae5c",
+      "file": "src/delivery/module_6a7c51.py",
+      "line": 176
+    },
+    "guard_verified": true
+  },
+  {
+    "id": "bug-25",
+    "observation": {
+      "metric": "mature retention cohorts",
+      "scenario": "delivery",
+      "deployment_mapping": {
+        "kind": "synthetic release bundle",
+        "candidate_shas": [
+          "b459c1577eb19a31f26f8e5364290ac0ccf1351c",
+          "018a8d474a15ebb4e83d71d140eeeba38f4b9706",
+          "6eb5d408659bd26d7b32d4a789c637bfe81b3236",
+          "dd287a4b7c95ff896bbada1269279b6cebfdeada",
+          "1b1f18cc4c088138487224eee89e5bb379278ca5"
+        ]
+      },
+      "observations": [
+        {
+          "id": "e1",
+          "expected_outcome": false,
+          "observed_outcome": true,
+          "sample_size": 1200,
+          "input_condition": {
+            "days": 12
+          }
+        }
+      ],
+      "commits": [
+        {
+          "sha": "b459c1577eb19a31f26f8e5364290ac0ccf1351c",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/delivery/module_99bd94.py",
+              "patch": "@@ -131,2 +131,3 @@\n def record_metric(event):\n-    return event\n+    # delivery carrier routing delayed repeat retention cohort\n+    return event",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "018a8d474a15ebb4e83d71d140eeeba38f4b9706",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/delivery/module_b96616.py",
+              "patch": "@@ -43,2 +43,2 @@\n def cache_ttl():\n-    return 60\n+    return 120",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "6eb5d408659bd26d7b32d4a789c637bfe81b3236",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/delivery/module_2e1ac5.py",
+              "patch": "@@ -178,2 +178,2 @@\n def label(value):\n-    return str(value)\n+    return str(value).strip()",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "dd287a4b7c95ff896bbada1269279b6cebfdeada",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/delivery/module_2f04ce.py",
+              "patch": "@@ -131,2 +131,2 @@\n def evaluate(days):\n-    return days >= 30\n+    return days <= 30",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        },
+        {
+          "sha": "1b1f18cc4c088138487224eee89e5bb379278ca5",
+          "repo": "evaluation/fixture",
+          "message": "Update business service",
+          "timestamp": "2026-10-10T14:02:00+00:00",
+          "deployment_eligible": true,
+          "files": [
+            {
+              "filename": "src/delivery/module_5c565f.py",
+              "patch": "@@ -141,2 +141,2 @@\n def evaluate(days):\n-    return days >= 30\n+    return (days >= 30)",
+              "additions": 2,
+              "deletions": 1
+            }
+          ]
+        }
+      ],
+      "segments": []
+    },
+    "ground_truth": {
+      "sha": "dd287a4b7c95ff896bbada1269279b6cebfdeada",
+      "file": "src/delivery/module_2f04ce.py",
+      "line": 132
+    },
+    "guard_verified": true
+  }
+]

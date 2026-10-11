@@ -270,7 +270,9 @@ def analyze(engine, body):
     rows = snapshot["rows"]
     if source == "shopify" and snapshot["mode"] == "live":
         return {
-            "provider": "Deterministic validation",
+            "provider": "Measurements only",
+            "detected": None,
+            "status": "unassessed",
             "classification": "inconclusive",
             "summary": "Order records were collected. Connect session measurements and a comparable baseline to assess checkout completion.",
         }
@@ -295,25 +297,12 @@ def analyze(engine, body):
         if b["sessions"]
         else 0
     )
-    # This is a screening signal, not a regression verdict without release evidence.
-    category = (
-        "security_signal"
-        if any(r.get("blocked_requests", 0) > 100 for r in recent)
-        else (
-            "data_quality"
-            if any(r.get("collection_gap") for r in recent)
-            else "traffic_anomaly" if daily_ratio > 2 else "inconclusive"
-        )
-    )
-    summary = f"Completion rate changed from {b['completion_rate']:.1%} to {a['completion_rate']:.1%}. Release mapping is required to determine whether a code change contributed."
-    if category == "security_signal":
-        summary += " The fixture includes elevated blocked-request signals. This indicates a possible attack, not a confirmed compromise."
-    if category == "data_quality":
-        summary += " The fixture includes a purchase-event collection gap; validate instrumentation before assessing business impact."
+    summary = "Comparable business measurements were collected for AI assessment."
     finding = {
         "title": "Source metric change",
         "summary": summary,
-        "classification": category,
+        "metric": "Daily checkout outcomes",
+        "deployment_mapping": None,
         "baseline": {
             "mean_daily_sessions": round(b["sessions"] / len(baseline), 2),
             "mean_daily_orders": round(b["orders"] / len(baseline), 2),
@@ -324,8 +313,9 @@ def analyze(engine, body):
             "mean_daily_orders": round(a["orders"] / len(recent), 2),
             "completion_rate": a["completion_rate"],
         },
-        "evidence": [
+        "observations": [
             {
+                "id": "e1",
                 "daily_session_ratio": round(daily_ratio, 2),
                 "source": source,
                 "mode": snapshot["mode"],
@@ -338,9 +328,9 @@ def analyze(engine, body):
         "segment": "Daily aggregate",
         "formula": "orders / sessions",
     }
-    from investigator import investigate
+    from investigator import detect_anomaly
 
-    result = investigate(finding, policy)
+    result = detect_anomaly(finding, policy)
     import uuid
 
     finding = {
@@ -348,7 +338,12 @@ def analyze(engine, body):
         "id": str(uuid.uuid4()),
         "fingerprint": fingerprint,
         "source": source,
-        "status": "active",
+        "status": (
+            "active"
+            if result["detected"] is True
+            else "healthy" if result["detected"] is False else "unassessed"
+        ),
+        "detection_provider": result["provider"],
         "created_at": datetime.now(timezone.utc).isoformat(),
         "measurements": {"baseline": b, "recent": a},
         "mode": snapshot["mode"],

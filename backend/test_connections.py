@@ -61,7 +61,7 @@ class ConnectionTests(unittest.TestCase):
         ):
             self.assertEqual(
                 investigate({"summary": "Observed decline"})["provider"],
-                "Deterministic analysis",
+                "AI unavailable",
             )
 
     def test_manual_review_preserves_events(self):
@@ -88,7 +88,8 @@ class ConnectionTests(unittest.TestCase):
             collect(self.e, {"source": "analytics", "sample": True, "scenario": case})
             with patch.dict(os.environ, {}, clear=True):
                 result = analyze(self.e, {"source": "analytics"})
-            self.assertEqual(result["classification"], category)
+            self.assertEqual(result["classification"], "inconclusive")
+            self.assertIsNone(result["detected"])
 
     def test_shopify_no_customer_fields(self):
         from connections import shopify
@@ -149,9 +150,10 @@ class ConnectionTests(unittest.TestCase):
     def test_ai_receives_normalized_source_windows(self):
         collect(self.e, {"source": "analytics", "sample": True})
         with patch(
-            "investigator.investigate",
+            "investigator.detect_anomaly",
             return_value={
                 "classification": "inconclusive",
+                "detected": True,
                 "provider": "test",
                 "summary": "Observed change",
             },
