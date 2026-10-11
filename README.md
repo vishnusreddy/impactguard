@@ -100,11 +100,11 @@ Tests cover regression isolation, dollar arithmetic, manual review without evide
 
 React / Vite → Python HTTP API → SQLite events → metric detector → commit correlation → evidence investigator → persisted findings / audit.
 
-Keep this as one deployable unit until data throughput or independent scaling justifies splitting services. The demo server binds to loopback by default. Cloud-hosted operation needs an authenticated production service, durable state, request validation, rate limits, audit ownership and background processing. The Docker demo uses ephemeral local state and is not a multi-instance production datastore.
+Keep this as one deployable unit until data throughput or independent scaling justifies splitting services. The demo server binds to loopback by default. Cloud-hosted operation needs an authenticated production service, durable state, request validation, rate limits, audit ownership and background processing. The local filesystem is ephemeral in Cloud Run. The deployed service saves generation-checked Cloud Storage checkpoints and restores them on startup. It is configured for one instance and one concurrent request.
 
 ## Personal GCP deployment
 
-See [the deployment and cost guide](docs/deploy-personal-gcp.md). Start with an isolated personal gcloud configuration and a private, scale-to-zero Cloud Run demo. Expect roughly $0–$5/month for light use, subject to actual usage and free-tier eligibility. SQLite is ephemeral on Cloud Run. No deployment has been executed.
+The [public demo](https://impactguard-182850660018.us-central1.run.app/) is deployed in the personal project. See [production access and cost controls](docs/production.md) for the public preview, owner access, durable checkpoints, and budget alerts. The target is $0–$5/month for light use, subject to actual usage and billing-account free-tier eligibility. The [personal deployment guide](docs/deploy-personal-gcp.md) contains background setup instructions.
 
 ## Rebuilding the presentation assets
 
