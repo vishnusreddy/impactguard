@@ -87,11 +87,17 @@ def investigate(
             credentials=credentials,
         )
         _CALLS += 1
+        config_options = (
+            {"thinking_config": types.ThinkingConfig(thinking_level="MINIMAL")}
+            if model.startswith(("gemini-3.1-flash-lite", "gemini-3.5-flash-lite"))
+            else {}
+        )
         try:
             response = client.models.generate_content(
                 model=model,
                 contents=prompt,
                 config=types.GenerateContentConfig(
+                    **config_options,
                     max_output_tokens=1200,
                     temperature=0.1,
                     response_mime_type="application/json",
@@ -124,6 +130,12 @@ def investigate(
                 "Vertex analysis failed or returned invalid output. Evidence was not changed."
             )
         result = redact(result)
+        usage = getattr(response, "usage_metadata", None)
+        result["usage"] = {
+            "input_tokens": getattr(usage, "prompt_token_count", None),
+            "output_tokens": getattr(usage, "candidates_token_count", None),
+            "total_tokens": getattr(usage, "total_token_count", None),
+        }
         result.update(
             provider="Vertex AI / " + model,
             cached=False,
