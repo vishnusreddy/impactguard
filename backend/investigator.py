@@ -38,13 +38,19 @@ def evidence_for(finding):
             values = evidence.get(key)
             if isinstance(values, dict) and "n" in values:
                 normalized = {
-                    k: values[k] for k in ("conversion", "rps") if k in values
+                    name: values[key]
+                    for key, name in (
+                        ("conversion", "overall_completion_rate"),
+                        ("rps", "overall_revenue_per_session"),
+                    )
+                    if key in values
                 }
                 if values.get("revenue"):
                     normalized["contribution_margin_ratio"] = (
                         values.get("margin", 0) / values["revenue"]
                     )
                 evidence[key] = normalized
+    evidence["segments"] = finding.get("segments", [])[:4]
     evidence["commits"] = [
         {k: c.get(k) for k in ("sha", "message", "timestamp", "repo", "files")}
         for c in finding.get("commits", [])[:3]
