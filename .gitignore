@@ -12,3 +12,7 @@ __pycache__/
 *.key
 credentials*.json
 service-account*.json
+.secrets/
+.local/
+*credentials*.json
+/tmp/pdfs/

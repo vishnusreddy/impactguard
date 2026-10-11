@@ -19,13 +19,11 @@ class EngineTests(unittest.TestCase):
         )
         expected = (f["baseline"]["conversion"] - f["actual"]["conversion"]) * 120 * 82
         self.assertAlmostEqual(f["exposure"], expected, delta=1)
-        d = self.e.action("recover")
-        self.assertEqual(d["status"], "recovered")
-        self.assertAlmostEqual(
-            d["metrics"]["conversion"], d["baseline"]["conversion"], delta=0.025
-        )
-        with self.assertRaises(ValueError):
-            self.e.action("recover")
+        before = self.e.stats("live")
+        d = self.e.action("resolve")
+        self.assertEqual(d["status"], "resolved")
+        self.assertEqual(self.e.stats("live"), before)
+        with self.assertRaises(ValueError): self.e.action("recover")
 
     def test_promotion_negative_margin(self):
         f = self.e.launch("promotion")["finding"]
@@ -68,20 +66,11 @@ class EngineTests(unittest.TestCase):
         self.assertEqual(self.e.bank_summary()["mismatches"], 200)
         self.assertGreater(f["exposure"], 0)
         self.assertEqual(f["commits"][0]["sha"][:7], "e921bd0")
-        self.e.action("recover")
-        b = self.e.bank_summary()
-        self.assertEqual(b["mismatches"], 0)
-        self.assertEqual(b["reversals"], 200)
-        self.assertEqual(
-            self.e.db.execute(
-                "SELECT COUNT(*) FROM ledger WHERE kind='credit'"
-            ).fetchone()[0],
-            2000,
-        )
-        net = self.e.db.execute(
-            "SELECT SUM(l.amount_cents) FROM ledger l JOIN bank_transactions t ON t.id=l.transaction_id WHERE t.bank_status!='settled'"
-        ).fetchone()[0]
-        self.assertAlmostEqual(net, 0, places=6)
+        original = self.e.db.execute("SELECT SUM(amount_cents) FROM ledger").fetchone()[0]
+        self.e.action("not_issue")
+        self.assertEqual(self.e.bank_summary()["mismatches"], 200)
+        self.assertEqual(self.e.bank_summary()["reversals"], 0)
+        self.assertEqual(self.e.db.execute("SELECT SUM(amount_cents) FROM ledger").fetchone()[0], original)
 
     def test_reconciliation_detects_duplicate_and_missing_postings(self):
         self.e.launch("banking")
@@ -97,15 +86,9 @@ class EngineTests(unittest.TestCase):
         )
         self.assertEqual(self.e.bank_summary()["mismatches"], 202)
         self.assertEqual(self.e.bank_summary()["missing_credits"], 10)
-        self.e.action("recover")
-        self.assertEqual(self.e.bank_summary()["mismatches"], 0)
-        self.assertEqual(self.e.bank_summary()["missing_credits"], 0)
-        self.assertEqual(
-            self.e.db.execute(
-                "SELECT COUNT(*) FROM ledger WHERE id='duplicate'"
-            ).fetchone()[0],
-            1,
-        )
+        self.e.action("ignore")
+        self.assertEqual(self.e.bank_summary()["mismatches"], 202)
+        self.assertEqual(self.e.bank_summary()["missing_credits"], 10)
 
     def test_reset_and_active_guard(self):
         self.e.launch("checkout")

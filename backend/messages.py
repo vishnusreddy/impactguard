@@ -6,6 +6,7 @@ def format_finding(finding):
         return finding
     result = dict(finding)
     scenario = result.get("scenario")
+    result.setdefault("classification", "operational_incident" if scenario == "delivery" else "business_regression")
     if scenario == "checkout":
         result.update(
             title="Checkout completion rate decreased",

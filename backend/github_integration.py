@@ -4,6 +4,7 @@ No ambient gh credentials. Only an explicitly supplied ImpactGuard token is used
 
 import json, os, re, urllib.request, urllib.error
 from datetime import datetime
+from security import redact, safe_file
 
 
 def normalize_repo(value):
@@ -63,15 +64,15 @@ def fetch_commits(repo):
                         "filename": f["filename"],
                         "additions": f["additions"],
                         "deletions": f["deletions"],
-                        "patch": f.get("patch", "Diff unavailable for this file"),
+                        "patch": redact(f.get("patch", "Diff unavailable for this file"))[:4000],
                     }
-                    for f in detail.get("files", [])
+                    for f in detail.get("files", [])[:30] if safe_file(f["filename"])
                 ],
                 "source": "GitHub",
                 "repo": repo,
             }
         )
-    return commits
+    return redact(commits)
 
 
 DEMO_COMMITS = [

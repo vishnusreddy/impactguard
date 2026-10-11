@@ -27,13 +27,11 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/health":
             return self.respond({"ok": True, "mode": "synthetic-demo"})
         if path == "/api/github":
-            return self.respond(
-                {
-                    "repo": engine.get("github_repo"),
-                    "commits": engine.get("github_commits", []),
-                    "connected": bool(engine.get("github_repo")),
-                }
-            )
+            from connections import state
+
+            with __import__("engine").LOCK:
+                result = state(engine)
+            return self.respond(result)
         if path == "/api/dashboard":
             return self.respond(engine.dashboard())
         if path == "/api/export":
@@ -83,23 +81,49 @@ class Handler(BaseHTTPRequestHandler):
                 raise ValueError("Request body must be a JSON object")
             path = urlparse(self.path).path
             if path == "/api/github/connect":
-                from github_integration import fetch_commits, normalize_repo
+                from connections import connect
 
-                repo = normalize_repo(body.get("repo", ""))
-                commits = fetch_commits(repo)
                 with __import__("engine").LOCK:
-                    engine.set("github_repo", repo)
-                    engine.set("github_commits", commits)
-                    engine.audit(
-                        "GitHub repository synced",
-                        repo + " read-only commit metadata and diffs imported.",
+                    result = connect(engine, body.get("repo", ""))
+            elif path == "/api/integrations/config":
+                from connections import configure
+
+                with __import__("engine").LOCK:
+                    result = configure(engine, body)
+            elif path == "/api/integrations/collect":
+                from connections import collect
+
+                with __import__("engine").LOCK:
+                    result = collect(engine, body)
+            elif path == "/api/integrations/analyze":
+                from connections import analyze
+
+                result = analyze(engine, body)
+            elif path == "/api/integrations/review":
+                from connections import review_source
+
+                with __import__("engine").LOCK:
+                    result = review_source(engine, body)
+            elif path == "/api/github/remove":
+                from connections import state
+
+                with __import__("engine").LOCK:
+                    engine.set(
+                        "project_repos",
+                        [
+                            r
+                            for r in engine.get("project_repos", [])
+                            if r["repo"] != body.get("repo")
+                        ],
                     )
                     engine.db.commit()
-                result = {"repo": repo, "commits": commits, "connected": True}
+                    result = state(engine)
             elif path == "/api/github/rank":
                 from github_integration import rank_commits
 
-                commits = engine.get("github_commits", [])
+                from connections import state
+
+                commits = state(engine)["commits"]
                 if not commits:
                     raise ValueError("Connect a repository first")
                 result = {
@@ -124,14 +148,22 @@ class Handler(BaseHTTPRequestHandler):
                 f = engine.finding(body.get("finding_id"))
                 if not f:
                     raise ValueError("Launch a scenario first")
-                result = investigate(f)
+                result = investigate(
+                    f,
+                    engine.get(
+                        "analysis_policy",
+                        "Check business outcomes, traffic changes, and data quality.",
+                    ),
+                )
             else:
                 return self.respond({"error": "Not found"}, 404)
             self.respond(result)
         except (ValueError, TypeError) as e:
             self.respond({"error": str(e)}, 400)
         except Exception:
-            traceback.print_exc()
+            print(
+                "Request failed; sensitive provider details suppressed", file=sys.stderr
+            )
             self.respond({"error": "Internal error. Check server logs."}, 500)
 
 

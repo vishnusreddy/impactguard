@@ -2,9 +2,9 @@
 
 ![ImpactGuard developer dashboard](output/dashboard.png)
 
-[Demo deck](output/ImpactGuard-demo-v2.pptx) · [Narrated walkthrough](output/ImpactGuard-demo.mp4) · [Presenter script](docs/demo-script.md)
+[Product document (PDF)](output/pdf/ImpactGuard-product-document.pdf) · [Connections and AI setup](docs/connections-and-ai.md)
 
-Business regression investigations for developers. Connect a release to a customer outcome, inspect suspect commits, calculate financial exposure, and verify recovery.
+Business regression investigations for developers. Connect a release to a customer outcome, inspect suspect commits, calculate financial exposure, and record a review decision.
 
 ## Run locally
 
@@ -25,25 +25,26 @@ Development: run the Python server and `npm run dev` in separate terminals. Vite
 1. Run **Checkout regression**. The generator persists 6,000 sessions for the current simulated hour and compares them with 30,000 historical sessions across 30 days.
 2. Open the issue. Inspect affected segments, statistical evidence, the suspect commit, and its diff.
 3. Click **Investigate** for a deterministic evidence explanation. The provider label is explicit. Optional Vertex AI support requires explicit configuration below.
-4. Click **Simulate fix**. The engine generates 6,000 new healthy sessions and shows measured recovery. No real rollback occurs. For banking, remediation appends corrective ledger entries, preserves original postings, and verifies zero remaining reconciliation mismatches.
+4. Select **Mark resolved**, **Ignore**, or **Not an issue**. These actions change review state only. Source events, bank statuses, and ledger postings remain unchanged. Select **Reopen** to investigate again.
 5. Run **Promotion stacking** or **Delivery delays** to evaluate other business regressions. Resolve the active incident before launching the next one. Historical incidents remain accessible.
 6. Export a JSON incident report or review the persistent activity log.
 
-`docs/demo-script.md` contains a four-minute presenter script. The editable deck and narrated 1080p walkthrough are in `output/`. The video uses captured screens from the working local app, a synthetic voice, and selectable English subtitles.
+The written PDF contains the current demo guide, seller and banking examples, competitor comparison, and AI capability matrix. The older video and slides show the former remediation simulation and are retained as historical assets.
 
 ## What works
 
 - Responsive React developer dashboard, issue search and sorting, release history, impact graph, activity log, report exports
 - Real SQLite persistence, repeatable synthetic event generation and threshold-based detection
-- Red regression states and green healthy/recovered states
-- Banking settlement reconciliation with integer-cent postings, explicit reversals, and duplicate/missing credit checks
+- Red regression states and green healthy/reviewed states
+- Banking settlement reconciliation with integer-cent postings and and duplicate/missing credit checks
 - Segment isolation, two-proportion standard-error comparison, negative-margin detection, mature retention cohort comparison
 - Deterministic financial exposure with units and assumptions displayed in each investigation
 - Heuristic commit ranking from timestamps, filenames and diff content, plus native diff inspection
-- Read-only GitHub repository sync for ten recent commits and their patches
+- Read-only GitHub import, up to 10 repositories per project, with sensitive-file filtering and bounded redacted patches
 - Idempotent ingestion endpoint with stable event IDs
-- Functional remediation simulation and recovery measurement
-- Optional Vertex AI structured explanation adapter
+- Manual review states without code or ledger changes
+- Shopify and GA4 read-only connectors, generated samples, and separate source analysis
+- Optional Vertex AI classification and investigation with configurable checks, caching, and token limits
 - Docker image and BigQuery migration SQL prepared for a later cloud phase
 
 ## Honest boundaries
@@ -56,21 +57,13 @@ The chart is a two-hour replay: a healthy baseline sample followed by the curren
 
 ## GitHub integration
 
-Use **Commit analysis**, enter an `owner/repository`, and click **Connect**. Public repositories need no token. For a private repository, start the server with an explicitly selected personal fine-grained read-only token in `IMPACTGUARD_GITHUB_TOKEN`. Do not put a token into the UI or a tracked file. The adapter never reads ambient `gh` credentials. No repository has been connected by this build.
+Use **Codebases**, enter an `owner/repository`, and click **Connect codebase**. Public repositories need no token. For a private repository, start the server with an explicitly selected personal fine-grained read-only token in `IMPACTGUARD_GITHUB_TOKEN`. Do not put a token into the UI or a tracked file. The adapter never reads ambient `gh` credentials. No repository has been connected by this build.
 
 `POST /api/github/rank` accepts `{"scenario":"checkout","anomaly_start":"2026-10-10T14:09:00Z"}` after a repository sync. Scoring weights: timing 30%, service-path overlap 30%, diff terms 25%, segment terms 15%. A hypothesis also needs eligibility within the preceding 60 minutes. Diff keyword matching is a starting point, not a semantic code analysis model.
 
-## Optional Gemini, later
+## Vertex AI and collection
 
-The default app never uses cloud credentials. Enabling Vertex requires all of:
-
-- `CLOUD_ENABLED=1`
-- `GCP_PROJECT` explicitly selected for a personal project
-- `GOOGLE_APPLICATION_CREDENTIALS` pointing to explicitly selected personal credentials
-- `GEMINI_MODEL` chosen from the current available Vertex model catalog
-- `pip install -r backend/requirements-cloud.txt`
-
-The investigator passes structured evidence only, returns strict JSON, and does not compute financial numbers. Ambient gcloud credentials are deliberately disabled. No GCP resources were created or modified. `docs/cloud-plan.md` describes the unexecuted migration.
+See [connections and AI setup](docs/connections-and-ai.md). Vertex uses explicit `IMPACTGUARD_VERTEX_PROJECT`, `IMPACTGUARD_VERTEX_CREDENTIALS`, and `GEMINI_MODEL`. Ambient Google credentials are not used. AI runs only on operator requests; deterministic measurement and ledger validation remain. Integrations provides generated Shopify and GA4 samples, including traffic, security-signal, and data-quality cases.
 
 ## API
 
@@ -78,15 +71,19 @@ The investigator passes structured evidence only, returns strict JSON, and does 
 | -------------------------------- | ------------------------------------------- |
 | GET `/api/health`                | Local readiness                             |
 | GET `/api/dashboard`             | Metrics, findings, series, releases, audit  |
-| POST `/api/scenarios`            | `{scenario: checkout/promotion/delivery}`   |
-| POST `/api/actions`              | `{action: recover/assign, finding_id?: id}` |
+| POST `/api/scenarios`            | `{scenario: checkout/promotion/delivery/banking}`   |
+| POST `/api/actions`              | `{action: resolve/ignore/not_issue/reopen/assign, finding_id?: id}` |
 | POST `/api/investigate`          | `{finding_id?: id}` evidence explanation    |
 | GET `/api/export?finding_id=...` | JSON incident and audit report              |
 | POST `/api/reset`                | Reset synthetic demo data                   |
 | POST `/api/events`               | Store an external unified event             |
-| GET `/api/github`                | Repository sync status                      |
+| GET `/api/github`                | Project repositories and integration status                      |
 | POST `/api/github/connect`       | Read-only GitHub sync                       |
 | POST `/api/github/rank`          | Rank imported commits against an onset      |
+
+| POST `/api/integrations/config` | Non-secret collection settings and AI checks |
+| POST `/api/integrations/collect` | Read-only source collection or generated samples |
+| POST `/api/integrations/analyze` | Aggregate validation and optional AI classification |
 
 ## Verification
 
@@ -95,7 +92,7 @@ npm run build
 npm test
 ```
 
-Tests cover regression isolation, dollar arithmetic, recovery, coupon loss, retention cohorts, idempotency, invalid event data, scenario guards, bank reversals, duplicate and missing postings, commit scoring, onset eligibility, repo validation and mocked GitHub diff sync. Browser QA covers the issue dashboard, investigation, response and commit diff screens.
+Tests cover regression isolation, dollar arithmetic, manual review without evidence changes, coupon loss, retention cohorts, idempotency, invalid event data, scenario guards, ledger preservation, duplicate and missing postings, commit scoring, onset eligibility, repo validation and mocked GitHub diff sync. Browser QA covers the issue dashboard, investigation, response and commit diff screens.
 
 ## Local architecture
 
@@ -109,6 +106,6 @@ See [the deployment and cost guide](docs/deploy-personal-gcp.md). Start with an 
 
 ## Rebuilding the presentation assets
 
-The exported deck and video are ready to use. `scripts/create-demo-video.py` uses the captured screenshots in `docs/demo-assets/`, macOS `say`, and FFmpeg. The deck authoring script uses the Codex bundled presentation runtime and requires `RUNTIME_NODE_MODULES`, `PRESENTATION_SKILL_DIR`, and `RUNTIME_PYTHON`. These authoring tools are not needed to run the web app.
+The current written document is generated with `scripts/create-product-document.py` and ReportLab. The older deck and video are historical assets; their remediation demonstration is no longer current. `scripts/create-demo-video.py` uses the captured screenshots in `docs/demo-assets/`, macOS `say`, and FFmpeg. The deck authoring script uses the Codex bundled presentation runtime and requires `RUNTIME_NODE_MODULES`, `PRESENTATION_SKILL_DIR`, and `RUNTIME_PYTHON`. These authoring tools are not needed to run the web app.
 
 An optional GitHub Actions configuration is included at `docs/github-ci-template.yml`. To enable it, copy it to `.github/workflows/ci.yml` using a credential authorized to manage workflows. The same build and tests run locally with `npm run build` and `npm test`.

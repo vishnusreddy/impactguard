@@ -18,13 +18,15 @@ class Engine:
             os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
         self.db = sqlite3.connect(path, check_same_thread=False)
         self.db.row_factory = sqlite3.Row
-        self.db.executescript("""CREATE TABLE IF NOT EXISTS events(id TEXT PRIMARY KEY, timestamp TEXT, phase TEXT, browser TEXT, payment_method TEXT, success INTEGER, revenue REAL, margin REAL, delayed INTEGER, repeated INTEGER, payload TEXT);
+        self.db.executescript(
+            """CREATE TABLE IF NOT EXISTS events(id TEXT PRIMARY KEY, timestamp TEXT, phase TEXT, browser TEXT, payment_method TEXT, success INTEGER, revenue REAL, margin REAL, delayed INTEGER, repeated INTEGER, payload TEXT);
         CREATE TABLE IF NOT EXISTS bank_transactions(id TEXT PRIMARY KEY,timestamp TEXT,bank_status TEXT,app_status TEXT,amount_cents INTEGER);
         CREATE TABLE IF NOT EXISTS ledger(id TEXT PRIMARY KEY,transaction_id TEXT,amount_cents INTEGER,kind TEXT,timestamp TEXT);
         CREATE TABLE IF NOT EXISTS state(key TEXT PRIMARY KEY, value TEXT);
         CREATE TABLE IF NOT EXISTS audit(id TEXT PRIMARY KEY,timestamp TEXT,action TEXT,detail TEXT);
         CREATE TABLE IF NOT EXISTS findings(id TEXT PRIMARY KEY,payload TEXT);
-        CREATE TABLE IF NOT EXISTS deployments(id TEXT PRIMARY KEY,timestamp TEXT,version TEXT,components TEXT);""")
+        CREATE TABLE IF NOT EXISTS deployments(id TEXT PRIMARY KEY,timestamp TEXT,version TEXT,components TEXT);"""
+        )
         if "amount_cents" not in [
             r[1] for r in self.db.execute("PRAGMA table_info(bank_transactions)")
         ]:
@@ -54,8 +56,11 @@ class Engine:
         self.db.commit()
 
     def get(self, k, default=None):
-        row = self.db.execute("SELECT value FROM state WHERE key=?", (k,)).fetchone()
-        return json.loads(row[0]) if row else default
+        with LOCK:
+            row = self.db.execute(
+                "SELECT value FROM state WHERE key=?", (k,)
+            ).fetchone()
+            return json.loads(row[0]) if row else default
 
     def set(self, k, v):
         self.db.execute("INSERT OR REPLACE INTO state VALUES (?,?)", (k, json.dumps(v)))
@@ -118,7 +123,6 @@ class Engine:
         with LOCK:
             for t in [
                 "events",
-                "state",
                 "audit",
                 "findings",
                 "deployments",
@@ -451,114 +455,52 @@ class Engine:
                 "detail": "Evidence correlated and dollar exposure calculated",
             },
         ]
+        base["classification"] = (
+            "operational_incident" if scenario == "delivery" else "business_regression"
+        )
+        base["classification_basis"] = (
+            "Synthetic release and metric evidence. Candidate cause; not confirmed causation."
+        )
         return format_finding(base)
 
     def finding(self, finding_id=None):
-        row = self.db.execute(
-            "SELECT payload FROM findings WHERE id=?",
-            (finding_id or self.get("current"),),
-        ).fetchone()
-        return format_finding(json.loads(row[0])) if row else None
+        with LOCK:
+            row = self.db.execute(
+                "SELECT payload FROM findings WHERE id=?",
+                (finding_id or self.get("current"),),
+            ).fetchone()
+            if not row:
+                return None
+            f = json.loads(row[0])
+            f.setdefault(
+                "classification",
+                (
+                    "operational_incident"
+                    if f.get("scenario") == "delivery"
+                    else "business_regression"
+                ),
+            )
+            return format_finding(f)
 
     def action(self, action, finding_id=None):
         with LOCK:
             f = self.finding(finding_id)
             if not f:
                 raise ValueError("No incident to act on")
-            if action == "recover":
-                if f["id"] != self.get("current") or f["status"] != "active":
-                    raise ValueError("Incident has already recovered")
-                self.generate("recovery", 6000, datetime.now(timezone.utc), 1)
-                if f["scenario"] == "banking":
-                    mismatches = self.reconciliation_rows()
-                    for tx in mismatches:
-                        correction = (
-                            tx["expected_credit_cents"] - tx["net_credit_cents"]
-                        )
-                        if correction:
-                            self.db.execute(
-                                "INSERT INTO ledger VALUES (?,?,?,?,?)",
-                                (
-                                    str(uuid.uuid4()),
-                                    tx["id"],
-                                    correction,
-                                    "reversal" if correction < 0 else "adjustment",
-                                    now(),
-                                ),
-                            )
-                        self.db.execute(
-                            "UPDATE bank_transactions SET app_status=? WHERE id=?",
-                            (
-                                "success"
-                                if tx["bank_status"] == "settled"
-                                else tx["bank_status"],
-                                tx["id"],
-                            ),
-                        )
-                    f["reconciliation"] = {
-                        "corrected_transactions": len(mismatches),
-                        "reversed_amount": sum(
-                            max(0, t["net_credit_cents"] - t["expected_credit_cents"])
-                            for t in mismatches
-                        )
-                        / 100,
-                        "remaining_mismatches": len(self.reconciliation_rows()),
-                    }
-                    self.audit(
-                        "Ledger reconciliation",
-                        f"Recorded {len(mismatches)} explicit reversal entries. Original credit postings retained.",
-                    )
-                f["status"] = "recovered"
-                f["recovered_at"] = now()
-                f["recovery"] = self.stats("recovery")
-                if f["scenario"] == "banking":
-                    f["recovery_summary"] = (
-                        f"{f['reconciliation']['corrected_transactions']} mismatches corrected with explicit reversal entries. Remaining mismatches: 0."
-                    )
-                elif f["scenario"] == "promotion":
-                    negative = self.db.execute(
-                        "SELECT COUNT(*) FROM events WHERE phase='recovery' AND margin<0"
-                    ).fetchone()[0]
-                    f["recovery_checks"] = {
-                        "negative_margin_orders": negative,
-                        "contribution_margin": f["recovery"]["margin"]
-                        / f["recovery"]["revenue"],
-                    }
-                    f["recovery_summary"] = (
-                        f"New traffic confirms {f['recovery_checks']['contribution_margin'] * 100:.1f}% contribution margin and {negative} negative-margin orders."
-                    )
-                elif f["scenario"] == "delivery":
-                    rates = [
-                        self.db.execute(
-                            "SELECT AVG(repeated) FROM events WHERE phase='recovery' AND delayed=?",
-                            (d,),
-                        ).fetchone()[0]
-                        for d in [0, 1]
-                    ]
-                    f["recovery_checks"] = {
-                        "on_time_repeat_rate": rates[0],
-                        "delayed_repeat_rate": rates[1],
-                    }
-                    f["recovery_summary"] = (
-                        f"New mature synthetic cohorts show {rates[0] * 100:.1f}% on-time and {rates[1] * 100:.1f}% delayed-customer repurchase rates."
-                    )
-                else:
-                    f["recovery_summary"] = (
-                        f"Fresh simulated traffic measured {f['recovery']['conversion'] * 100:.1f}% checkout conversion across 6,000 sessions."
-                    )
-                self.set("status", "recovered")
-                self.set(
-                    "avoided_daily",
-                    0
-                    if f["unit"] == "unbacked"
-                    else f["exposure"]
-                    if f["unit"] == "day"
-                    else f["exposure"] / (7 if f["unit"] == "week" else 365),
+            if action in ("resolve", "ignore", "not_issue", "reopen"):
+                f["status"] = {
+                    "resolve": "resolved",
+                    "ignore": "ignored",
+                    "not_issue": "not_issue",
+                    "reopen": "active",
+                }[action]
+                f["reviewed_at"] = now()
+                f["review_note"] = (
+                    "Manual review. Source measurements and ledger entries were not changed."
                 )
-                self.audit(
-                    "Simulated remediation",
-                    f"{f['action']}. Generated 6,000 new healthy sessions to verify recovery.",
-                )
+                if f["id"] == self.get("current"):
+                    self.set("status", f["status"])
+                self.audit("Issue reviewed", action + ": " + f["title"])
             elif action == "assign":
                 f["owner"] = "You"
                 self.audit(
@@ -635,7 +577,11 @@ class Engine:
                 "mode": "Synthetic demo",
                 "cloud": {
                     "bigquery": False,
-                    "gemini_configured": bool(os.getenv("GCP_PROJECT")),
+                    "gemini_configured": bool(
+                        os.getenv("IMPACTGUARD_VERTEX_PROJECT")
+                        and os.getenv("IMPACTGUARD_VERTEX_CREDENTIALS")
+                        and os.getenv("GEMINI_MODEL")
+                    ),
                 },
                 "updated_at": now(),
             }
@@ -744,7 +690,7 @@ class Engine:
                     amount * success * 0.36,
                     0,
                     0,
-                    json.dumps(event),
+                    __import__("security").redact(json.dumps(event)),
                 ),
             )
             self.db.commit()
