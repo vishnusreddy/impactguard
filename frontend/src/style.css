@@ -2334,3 +2334,32 @@ pre {
   padding: 16px 0;
   border-top: 1px solid #e4e8ee;
 }
+
+.business-context {
+  width: 100%;
+  min-height: 80px;
+  margin: 8px 0 12px;
+  padding: 10px 12px;
+  border: 1px solid #d3d9e1;
+  border-radius: 5px;
+  font: inherit;
+  resize: vertical;
+  background: #fff;
+}
+.assessment-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.metric-proposal {
+  padding: 16px 0;
+  border-bottom: 1px solid #edf0f3;
+}
+.metric-proposal h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+.metric-proposal p {
+  margin: 8px 0;
+}

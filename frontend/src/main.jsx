@@ -124,16 +124,45 @@ function App() {
     [propertyInput, setPropertyInput] = useState(""),
     [policyInput, setPolicyInput] = useState(""),
     [sourceAnalysis, setSourceAnalysis] = useState(null),
+    [metricAssessment, setMetricAssessment] = useState(null),
+    [businessContext, setBusinessContext] = useState(""),
     [sampleScenario, setSampleScenario] = useState("checkout"),
     [expandedCommit, setExpandedCommit] = useState(null),
     [statusFilter, setStatusFilter] = useState("all"),
     [severityFilter, setSeverityFilter] = useState("all"),
     [categoryFilter, setCategoryFilter] = useState("all"),
     [publicScenario, setPublicScenario] = useState("checkout");
+  async function runMetricAssessment(sample) {
+    setBusy(true);
+    setError("");
+    try {
+      const result = await api("metrics/discover", {
+        sample,
+        business_context: businessContext,
+      });
+      setMetricAssessment(result);
+      setToast("Metric assessment completed. Proposals require review.");
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  function renderMetricRefs(refs) {
+    return (refs || [])
+      .map((ref) => {
+        const source = metricAssessment?.sources?.find((s) => s.id === ref.id);
+        return source?.file
+          ? `${source.repo}/${source.file}:${ref.line}`
+          : source?.source || ref.id;
+      })
+      .join("; ");
+  }
   useEffect(() => {
     api("github")
       .then((d) => {
         setGithub(d);
+        setMetricAssessment(d.metric_assessment || null);
         setStoreInput(d.config?.shopify_store || "");
         setPropertyInput(d.config?.ga_property || "");
         setPolicyInput(d.policy || "");
@@ -1828,6 +1857,136 @@ function App() {
                         Connect codebase
                       </button>
                     </div>
+                  </section>
+                  <section className="panel connection-repos">
+                    <h2>Business metrics and instrumentation</h2>
+                    <p className="muted">
+                      Gemini assesses selected code excerpts and collected
+                      connector fields. Recommendations are proposals; they do
+                      not enable monitoring or change code.
+                    </p>
+                    <label htmlFor="business-context">Business context</label>
+                    <textarea
+                      id="business-context"
+                      className="business-context"
+                      maxLength={1200}
+                      placeholder="Describe your business, successful outcomes, and accounting constraints."
+                      value={businessContext}
+                      onChange={(e) => setBusinessContext(e.target.value)}
+                      disabled={publicAccess}
+                    />
+                    <div className="assessment-actions">
+                      <button
+                        className="button primary"
+                        disabled={
+                          busy ||
+                          publicAccess ||
+                          (!github?.repos?.length &&
+                            !Object.keys(github?.snapshots || {}).length)
+                        }
+                        onClick={() => runMetricAssessment(false)}
+                      >
+                        Assess connected sources
+                      </button>
+                      <button
+                        className="button"
+                        disabled={busy}
+                        onClick={() => runMetricAssessment(true)}
+                      >
+                        {publicAccess
+                          ? "View example assessment"
+                          : "Assess generated example"}
+                      </button>
+                    </div>
+                    {metricAssessment && (
+                      <>
+                        <p className="muted">
+                          {metricAssessment.provider}
+                          {metricAssessment.cached
+                            ? " · Cached assessment"
+                            : ""}
+                        </p>
+                        <p>{metricAssessment.business_summary}</p>
+                        {metricAssessment.metrics?.map((m, i) => (
+                          <article className="metric-proposal" key={i}>
+                            <div className="panel-head">
+                              <h3>{m.name}</h3>
+                              <span className="badge neutral">
+                                {m.readiness.replaceAll("_", " ")}
+                              </span>
+                            </div>
+                            <p>{m.business_question}</p>
+                            <p>{m.definition}</p>
+                            <p className="muted">
+                              Required fields: {m.required_fields.join(", ")}
+                            </p>
+                            <p className="muted">{m.limitations}</p>
+                            <p className="muted">
+                              Evidence: {renderMetricRefs(m.evidence_refs)}
+                            </p>
+                            {m.sql_draft && (
+                              <details>
+                                <summary>Proposed SQL · not executed</summary>
+                                <pre className="draft-diff">{m.sql_draft}</pre>
+                              </details>
+                            )}
+                          </article>
+                        ))}
+                        {!!metricAssessment.logging?.length && (
+                          <h3>Recommended logging</h3>
+                        )}
+                        {metricAssessment.logging?.map((l, i) => (
+                          <article className="metric-proposal" key={i}>
+                            <h3>
+                              <code>{l.event_name}</code>
+                            </h3>
+                            <p>{l.purpose}</p>
+                            <p>Emit: {l.when_to_emit}</p>
+                            <p className="muted">
+                              Fields: {l.fields.join(", ")}
+                            </p>
+                            <p className="muted">
+                              Deduplication: {l.deduplication}
+                            </p>
+                            <p className="muted">
+                              Evidence: {renderMetricRefs(l.evidence_refs)}
+                            </p>
+                          </article>
+                        ))}
+                        {!!metricAssessment.questions?.length && (
+                          <>
+                            <h3>Definitions to confirm</h3>
+                            <ul>
+                              {metricAssessment.questions.map((q, i) => (
+                                <li key={i}>{q}</li>
+                              ))}
+                            </ul>
+                          </>
+                        )}
+                        {metricAssessment.coverage?.map((c, i) => (
+                          <p className="muted" key={i}>
+                            {c.repo}: {c.coverage}
+                            {c.eligible_files !== undefined
+                              ? ` · ${c.files_scanned ?? "Selected"} of ${c.eligible_files} eligible files`
+                              : ""}
+                            {c.tree_truncated
+                              ? " · Repository tree truncated"
+                              : ""}
+                          </p>
+                        ))}
+                        {metricAssessment.sources
+                          ?.filter((s) => s.excerpt)
+                          .map((s) => (
+                            <details key={s.id}>
+                              <summary>
+                                {s.repo}/{s.file} · {s.revision.slice(0, 12)}
+                              </summary>
+                              <pre className="draft-diff">{s.excerpt}</pre>
+                            </details>
+                          ))}
+                        <p className="muted">{metricAssessment.disclosure}</p>
+                      </>
+                    )}
                   </section>
                   <section className="panel connection-repos">
                     <h2>Project repositories</h2>

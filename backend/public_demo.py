@@ -103,6 +103,9 @@ def prepare(real):
             }
     finally:
         e.db.close()
+    from metric_discovery import assess, sample_evidence
+
+    real.set("public_metric_assessment", assess(sample_evidence()))
     real.set("public_ai_templates", results)
     real.set("public_source_templates", sources)
     real.audit(

@@ -150,6 +150,20 @@ class Handler(BaseHTTPRequestHandler):
             if public_preview() and not owner(self.headers):
                 from public_demo import connections, analysis
 
+                if path == "/api/metrics/discover":
+                    return self.respond(
+                        engine.get(
+                            "public_metric_assessment",
+                            {
+                                "provider": "Awaiting prepared AI assessment",
+                                "status": "unassessed",
+                                "metrics": [],
+                                "logging": [],
+                                "questions": [],
+                                "business_summary": "The generated assessment has not been prepared yet.",
+                            },
+                        )
+                    )
                 if path == "/api/investigate":
                     return self.respond(
                         analysis(engine, body.get("scenario", "checkout"))
@@ -166,7 +180,12 @@ class Handler(BaseHTTPRequestHandler):
                     },
                     403,
                 )
-            if path == "/api/demo/prepare":
+            if path == "/api/metrics/discover":
+                from metric_discovery import discover
+
+                with LOCK:
+                    result = discover(engine, body)
+            elif path == "/api/demo/prepare":
                 from public_demo import prepare
 
                 result = prepare(engine)

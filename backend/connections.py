@@ -10,6 +10,7 @@ def state(engine):
     snapshots = engine.get("integration_snapshots", {})
     return {
         "project": "Luma Goods",
+        "metric_assessment": engine.get("metric_assessment"),
         "repos": repos,
         "repo": ", ".join(r["repo"] for r in repos),
         "commits": [c for r in repos for c in r["commits"]],

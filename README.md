@@ -117,3 +117,7 @@ An optional GitHub Actions configuration is included at `docs/github-ci-template
 Gemini makes the anomaly decision from measurements and assigns the issue category. Arithmetic and ledger reconciliation remain reproducible SQL/integer operations. It compares all bounded eligible candidate diffs; the old heuristic is retained only as an evaluation baseline. Unknown SHA/file/line references are rejected. A valid citation is not causal proof. Banking account flags request human review, never blocking or asserting fraud. Suggested fixes and guard tests are displayed only, never applied or executed.
 
 The controlled development benchmark achieved 25/25 validated Gemini attributions versus 1/25 for the keyword baseline. It uses deliberately keyword-heavy decoys and does not establish production accuracy. [Evaluation artifacts](output/evaluation/README.md) include the dataset, all responses, token counts, and the earlier diagnostic run.
+
+## Discover metrics and logging gaps
+
+Codebases includes **Business metrics and instrumentation**. Gemini reads bounded, pinned source excerpts from connected repositories together with connector field inventories and proposes metric definitions and additional logging. Recommendations cite inspected evidence and show missing data. No metric is enabled, SQL executed or code changed. [Assessment workflow and limits](docs/metric-discovery.md).

@@ -246,3 +246,123 @@ def rank_commits(commits, scenario, anomaly_start="2026-10-10T14:09:00+00:00"):
             }
         )
     return sorted(ranked, key=lambda c: (c["eligible"], c["score"]), reverse=True)
+
+
+def fetch_business_context(repo, revision, limit=4):
+    """Read a bounded, pinned snapshot. Never execute repository code."""
+    import base64
+    from pathlib import PurePosixPath
+
+    repo = normalize_repo(repo)
+    if not re.fullmatch(r"[a-f0-9]{40}", revision):
+        raise ValueError("Refresh the repository import to obtain a pinned commit")
+    tree = github_get(f"repos/{repo}/git/trees/{revision}?recursive=1")
+    extensions = {
+        ".py",
+        ".ts",
+        ".tsx",
+        ".js",
+        ".go",
+        ".java",
+        ".rb",
+        ".sql",
+        ".graphql",
+        ".prisma",
+        ".cs",
+        ".php",
+    }
+
+    def eligible(item):
+        path = item.get("path", "")
+        parts = PurePosixPath(path).parts
+        return (
+            item.get("type") == "blob"
+            and item.get("mode") in ("100644", "100755")
+            and not path.startswith("/")
+            and ".." not in parts
+            and safe_file(path)
+            and not set(parts).intersection(
+                {
+                    "node_modules",
+                    "vendor",
+                    "dist",
+                    "build",
+                    ".local",
+                    "fixtures",
+                    "__pycache__",
+                    "tests",
+                    "test",
+                    "__tests__",
+                }
+            )
+            and not (
+                PurePosixPath(path).name.startswith("test_")
+                or ".test." in path
+                or ".spec." in path
+            )
+            and (
+                PurePosixPath(path).suffix in extensions or path.lower() == "readme.md"
+            )
+            and item.get("size", 0) <= 100000
+        )
+
+    items = [item for item in tree.get("tree", []) if eligible(item)]
+    terms = (
+        "schema",
+        "model",
+        "order",
+        "payment",
+        "checkout",
+        "settle",
+        "ledger",
+        "refund",
+        "discount",
+        "event",
+        "analytics",
+        "booking",
+        "subscription",
+        "invoice",
+        "fulfill",
+    )
+    items.sort(key=lambda i: (-sum(t in i["path"].lower() for t in terms), i["path"]))
+    files = []
+    for item in items[:limit]:
+        if not re.fullmatch(r"[a-f0-9]{40}", item.get("sha", "")):
+            raise ValueError("Invalid GitHub blob reference")
+        blob = github_get(f"repos/{repo}/git/blobs/{item['sha']}")
+        if blob.get("encoding") != "base64" or blob.get("size", 0) > 100000:
+            continue
+        try:
+            content = base64.b64decode(blob["content"]).decode("utf-8")
+        except (UnicodeError, ValueError):
+            continue
+        lines = redact(content).splitlines()
+        selected = set(range(min(8, len(lines))))
+        for i, line in enumerate(lines):
+            if re.search(
+                r"(?i)emit|logger|record|save|insert|update|status|amount|order|settle|payment|refund|discount|schema|event",
+                line,
+            ):
+                selected.update(range(max(0, i - 1), min(len(lines), i + 3)))
+        excerpt = "\n".join(f"{i+1}: {lines[i]}" for i in sorted(selected))[:1800]
+        files.append(
+            {
+                "repo": repo,
+                "revision": revision,
+                "file": item["path"],
+                "excerpt": excerpt,
+                "truncated": len(content) > len(excerpt),
+                "last_line": (
+                    int(excerpt.splitlines()[-1].split(":", 1)[0]) if excerpt else 0
+                ),
+            }
+        )
+    return {
+        "repo": repo,
+        "revision": revision,
+        "eligible_files": len(items),
+        "tree_truncated": bool(tree.get("truncated")),
+        "files": files,
+        "files_scanned": len(files),
+        "coverage": "Bounded file excerpts; not a whole-codebase audit",
+    }
