@@ -261,6 +261,7 @@ def fetch_business_context(repo, revision, limit=4):
         ".py",
         ".ts",
         ".tsx",
+        ".jsx",
         ".js",
         ".go",
         ".java",
@@ -308,6 +309,10 @@ def fetch_business_context(repo, revision, limit=4):
 
     items = [item for item in tree.get("tree", []) if eligible(item)]
     terms = (
+        "engine",
+        "service",
+        "controller",
+        "handler",
         "schema",
         "model",
         "order",

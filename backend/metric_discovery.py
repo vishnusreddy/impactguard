@@ -79,6 +79,7 @@ def connector_inventory(snapshots):
 
 def sample_evidence():
     return {
+        "assessment_version": 2,
         "business_context": "Generated example: independent storefront with online payments. No real repository or account is connected.",
         "code": [
             {
@@ -264,6 +265,7 @@ def discover(engine, body):
                 "Connect a codebase or collect source data first, or use the generated example"
             )
         evidence = {
+            "assessment_version": 2,
             "business_context": redact(context),
             "code": [],
             "connectors": connector_inventory(snapshots),

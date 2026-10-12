@@ -151,18 +151,19 @@ class Handler(BaseHTTPRequestHandler):
                 from public_demo import connections, analysis
 
                 if path == "/api/metrics/discover":
+                    result = engine.get(
+                        "public_metric_assessment",
+                        {
+                            "provider": "Awaiting prepared AI assessment",
+                            "status": "unassessed",
+                            "metrics": [],
+                            "logging": [],
+                            "questions": [],
+                            "business_summary": "The generated assessment has not been prepared yet.",
+                        },
+                    )
                     return self.respond(
-                        engine.get(
-                            "public_metric_assessment",
-                            {
-                                "provider": "Awaiting prepared AI assessment",
-                                "status": "unassessed",
-                                "metrics": [],
-                                "logging": [],
-                                "questions": [],
-                                "business_summary": "The generated assessment has not been prepared yet.",
-                            },
-                        )
+                        {**result, "cached": True, "public_preview": True}
                     )
                 if path == "/api/investigate":
                     return self.respond(
